@@ -1,0 +1,270 @@
+/* ====================== 基礎佈局 ====================== */
+.container {
+  font-family: Arial, Helvetica, sans-serif;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background: white;     /* 改成純白 */
+  min-height: 100vh;
+}
+/* ====================== Header 標題 + Create 按鈕（完美置中） ====================== */
+.header {
+  text-align: center;
+  padding: 50px 20px 30px;
+  margin-bottom: 10px;
+}
+
+.title-wrapper {
+  display: inline-block;
+  text-align: center;
+}
+
+.title-wrapper h1 {
+  margin: 0 0 28px 0;
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #2c3e50;
+  letter-spacing: 0.8px;
+}
+
+/* 超美 Create 按鈕，完全跟截圖一模一樣 */
+.create-header-btn {
+  display: inline-block;
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 15px 38px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.45);
+  transition: all 0.3s ease;
+  min-width: 240px;
+}
+
+.create-header-btn:hover {
+  background: #2980b9;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(52, 152, 219, 0.55);
+}
+
+.create-header-btn:active {
+  transform: translateY(-1px);
+}
+
+/* ====================== 表格 ====================== */
+.task-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+  background: white;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.task-table th,
+.task-table td {
+  border: 1px solid #e0e0e0;
+  padding: 14px 12px;
+  text-align: left;
+}
+
+.task-table th {
+  background: #f5f7fa;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.ToDo         { background: #fff3cd; color: #856404; }
+.InProgress   { background: #d1ecf1; color: #0c5460; }
+.Done         { background: #d4edda; color: #155724; }
+
+.edit-btn {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+.edit-btn:hover { background: #2980b9; }
+
+/* ====================== 編輯表單區 ====================== */
+.form-section {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  margin-bottom: 40px;
+}
+
+.form-section h2 {
+  margin: 0 0 24px 0;
+  color: #2c3e50;
+  font-size: 1.6rem;
+}
+
+.form-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.form-row > div {
+  flex: 1;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #444;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+textarea { resize: vertical; }
+
+.form-actions {
+  margin-top: 30px;
+  text-align: right;
+}
+
+.save-btn {
+  background: #f39c12;
+  color: white;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+}
+.save-btn:hover {
+  background: #e67e22;
+  transform: translateY(-2px);
+}
+
+/* ====================== Modal 新增表單 ====================== */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: white;
+  width: 90%;
+  max-width: 720px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.9); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 30px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+.close-btn:hover {
+  background: #f1f1f1;
+  color: #333;
+}
+
+.modal-content form {
+  padding: 30px;
+}
+
+.modal-actions {
+  text-align: right;
+  padding: 0 30px 30px;
+}
+
+.confirm-btn {
+  background: #27ae60;
+  color: white;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 50px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+  transition: all 0.3s;
+}
+.confirm-btn:hover {
+  background: #219a52;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(39, 174, 96, 0.5);
+}
+
+.required { color: #e74c3c; }
+
+/* ====================== 其他小調整 ====================== */
+.main-content { display: flex; gap: 25px; margin-top: 20px; }
+.sidebar { width: 300px; background: #f9f9f9; padding: 20px; border-radius: 8px; font-size: 14px; line-height: 1.6; }
+.content { flex: 1; }

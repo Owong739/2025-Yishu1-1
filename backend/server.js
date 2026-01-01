@@ -84,3 +84,34 @@ app.post('/api/projects', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
 });
+
+
+// 4. 註冊新用戶 API 
+app.post('/api/register', (req, res) => {
+    const { name, email, password, role } = req.body;
+
+    // 簡單檢查欄位是否填寫
+    if (!name || !email || !password || !role) {
+        return res.status(400).json({ success: false, message: 'Please fill in all fields' });
+    }
+
+    // 檢查 Email 是否已被註冊
+    const checkQuery = 'SELECT * FROM users WHERE email = ?';
+    db.query(checkQuery, [email], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length > 0) {
+            return res.status(409).json({ success: false, message: 'Email already exists' });
+        }
+
+        // 如果 Email 沒重複，就寫入資料庫
+        const insertQuery = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
+        db.query(insertQuery, [name, email, password, role], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            res.json({ 
+                success: true, 
+                message: 'User registered successfully' 
+            });
+        });
+    });
+});

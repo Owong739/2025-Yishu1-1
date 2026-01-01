@@ -42,6 +42,9 @@ const handleLogin = async () => {
       </div>
       <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       <button @click="handleLogin">Login</button>
+      <div class="register-link">
+        New user? <router-link to="/register">Create an account</router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -88,11 +91,29 @@ button {
   cursor: pointer;
   font-size: 1rem;
 }
+
 button:hover {
   background-color: #3aa876;
 }
+
 .error {
   color: red;
   font-size: 0.9rem;
+}
+
+.register-link {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.register-link a {
+  color: #42b983;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
 }
 </style>

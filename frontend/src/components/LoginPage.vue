@@ -10,16 +10,24 @@ const router = useRouter();
 
 const handleLogin = async () => {
   try {
-    // 發送請求到後端
     const response = await axios.post('http://localhost:3000/api/login', {
       email: email.value,
       password: password.value
     });
 
     if (response.data.success) {
-      // 簡單地將用戶資訊存入 localStorage (實際專案可考慮 Pinia/Vuex)
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      router.push('/main'); // 跳轉到主頁
+      const user = response.data.user;
+
+      // 存 token 和 role
+      localStorage.setItem('token', 'dummy-token-' + user.id);
+      localStorage.setItem('userRole', user.role.trim());
+      localStorage.setItem('user', JSON.stringify(user));
+
+      console.log('登入成功，userRole:', user.role);
+
+      // 根據角色自動跳到個人 Profile
+      const rolePath = user.role.toLowerCase().replace(' ', '-');
+      router.push(`/profile/${rolePath}`);
     }
   } catch (error) {
     errorMessage.value = 'Login failed. Please check your credentials.';

@@ -1,11 +1,15 @@
 <template>
   <div class="container">
-    <AppHeader />
-
+   
     <header class="header">
       <div class="title-wrapper">
         <h1>Task Manager</h1>
-        <button @click="openCreateModal" class="create-header-btn">
+        <!-- Only Product Manager can see and click "Create New Task" -->
+        <button
+          v-if="isProductManager"
+          @click="openCreateModal"
+          class="create-header-btn"
+        >
           + Create New Task
         </button>
       </div>
@@ -136,8 +140,22 @@
             </div>
 
             <div class="form-actions">
-              <button type="submit" class="save-btn">Save Changes</button>
-              <button type="button" @click="isEditing = false" class="cancel-btn">Cancel</button>
+              <!-- Only Product Manager can see and click "Save Changes" -->
+              <button
+                v-if="isProductManager"
+                type="submit"
+                class="save-btn"
+              >
+                Save Changes
+              </button>
+
+              <button
+                type="button"
+                @click="isEditing = false"
+                class="cancel-btn"
+              >
+                Cancel
+              </button>
             </div>
           </form>
 
@@ -217,8 +235,8 @@
             </div>
 
             <div class="modal-actions">
+              <!-- Assuming create also restricted to Product Manager -->
               <button type="submit" class="confirm-btn">Create Task</button>
-            
             </div>
           </form>
         </div>
@@ -233,7 +251,9 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 
 const router = useRouter();
-//const isAdmin = ref(true);
+
+const userRole = ref<string>('');
+const isProductManager = computed(() => userRole.value === 'Product Manager');
 
 const projects = ref<{ id: number; name: string }[]>([]);
 const selectedProject = ref<string | null>(null);
@@ -267,50 +287,44 @@ const currentTask = reactive({
 });
 
 const filteredTasks = computed(() => {
-    if (!selectedProject.value) return tasks.value;
-    return tasks.value.filter(t => t.project === selectedProject.value);
+  if (!selectedProject.value) return tasks.value;
+  return tasks.value.filter(t => t.project === selectedProject.value);
 });
 
 const truncateText = (text: string | undefined, maxLength = 40) => {
   if (!text) return '';
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-}
+};
 
 const fetchProjects = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/api/projects')
+    const res = await axios.get('http://localhost:3000/api/projects');
     if (res.data.success) {
-      projects.value = res.data.data
+      projects.value = res.data.data;
       if (projects.value.length > 0 && !selectedProject.value) {
-        // 安全取值
-        const firstProject = projects.value[0]
-        if (firstProject?.name) {
-          selectedProject.value = firstProject.name
-          newTask.project = firstProject.name
-        }
+        selectedProject.value = projects.value[0].name;
+        newTask.project = projects.value[0].name;
       }
     }
   } catch (err) {
-    console.error('Failed to load projects', err)
+    console.error('Failed to load projects', err);
   }
-}
+};
 
 const fetchUsers = async () => {
   try {
     const res = await axios.get('http://localhost:3000/api/users');
-    console.log('API /api/users 完整回傳：', res.data);  // debug
-
-    // 直接用 res.data（因為後端回陣列）
-    availableUsers.value = res.data.map((u: any) => ({
-      id: u.id,
-      name: u.name || u.email || 'Unnamed User',
-      role: u.role || '未設定'
-    }));
-    console.log('載入的使用者列表：', availableUsers.value);  // 看有沒有資料
+    if (res.data.success) {
+      availableUsers.value = res.data.data.map((u: any) => ({
+        id: u.id,
+        name: u.name,
+        role: u.role || '未設定'
+      }));
+    }
   } catch (err) {
-    console.error('載入使用者失敗：', err);
+    console.error('Failed to load users', err);
   }
-}
+};
 
 const fetchTasks = async () => {
   isLoading.value = true;
@@ -320,7 +334,7 @@ const fetchTasks = async () => {
     if (res.data.success) {
       tasks.value = res.data.data.map((t: any) => ({
         ...t,
-        id: String(t.id).padStart(3, '0') // Format the ID for display
+        id: String(t.id).padStart(3, '0')
       }));
     }
   } catch (err) {
@@ -351,12 +365,12 @@ const confirmCreate = async () => {
     const res = await axios.post('http://localhost:3000/api/tasks', payload);
     if (res.data.success) {
       alert('Task created successfully!');
-      await fetchTasks(); // Refresh task list
-      closeCreateModal(); // Close the modal
+      await fetchTasks();
+      closeCreateModal();
     }
   } catch (err) {
     console.error('Error during task creation:', err);
-    //alert('Creation failed: ' + (err.response?.data?.message || err.message));
+    alert('Creation failed: ' + (err.response?.data?.message || err.message));
   }
 };
 
@@ -372,16 +386,16 @@ const openCreateModal = () => {
     dueDate: ''
   });
   showCreateModal.value = true;
-}
+};
 
 const closeCreateModal = () => {
   showCreateModal.value = false;
-}
+};
 
 const autoFillRoleCreate = () => {
   if (!newTask.assignee) {
-      newTask.role = ''; // Reset if no assignee is selected
-      return;
+    newTask.role = '';
+    return;
   }
   const user = availableUsers.value.find(u => u.name === newTask.assignee);
   newTask.role = user?.role || 'Default Role';
@@ -396,13 +410,13 @@ const editTask = (task: any) => {
   currentTask.userStory = task.userStory || '';
   currentTask.assignee = task.assignee || '';
   currentTask.role = task.role || '';
-  currentTask.dueDate = task.dueDate ? task.dueDate.split('T')[0] : '';;
+  currentTask.dueDate = task.dueDate ? task.dueDate.split('T')[0] : '';
 
   isEditing.value = true;
   setTimeout(() => {
     document.querySelector('.form-section')?.scrollIntoView({ behavior: 'smooth' });
   }, 100);
-}
+};
 
 const autoFillRoleEdit = () => {
   if (!currentTask.assignee) {
@@ -411,12 +425,12 @@ const autoFillRoleEdit = () => {
   }
   const user = availableUsers.value.find(u => u.name === currentTask.assignee);
   currentTask.role = user?.role || '未設定';
-}
+};
 
 const saveTask = async () => {
   if (!currentTask.id) return;
 
-  //try {
+  try {
     const payload = {
       project: currentTask.project,
       title: currentTask.title,
@@ -425,7 +439,7 @@ const saveTask = async () => {
       userStory: currentTask.userStory.trim() || null,
       assignee: currentTask.assignee.trim() || null,
       role: currentTask.role.trim() || null,
-      dueDate: currentTask.dueDate ? currentTask.dueDate.split('T')[0] : null // Send in correct format
+      dueDate: currentTask.dueDate ? currentTask.dueDate.split('T')[0] : null
     };
 
     const res = await axios.put(`http://localhost:3000/api/tasks/${currentTask.id}`, payload);
@@ -434,15 +448,21 @@ const saveTask = async () => {
       await fetchTasks();
       isEditing.value = false;
     }
-  //} catch (err) {
-    //alert('Update failed: ' + (err.response?.data?.message || err.message));
- // }
-}
+  } catch (err) {
+    alert('Update failed: ' + (err.response?.data?.message || err.message));
+  }
+};
 
 onMounted(async () => {
   if (!localStorage.getItem('user')) {
     router.push('/');
     return;
+  }
+
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    userRole.value = user.role?.trim() || '';
   }
 
   await Promise.all([
@@ -451,10 +471,11 @@ onMounted(async () => {
     fetchTasks()
   ]);
 });
+
 const formatDueDate = (dateString: string) => {
   if (!dateString) return '';
-  return dateString.split('T')[0]; // Only show YYYY-MM-DD
-}
+  return dateString.split('T')[0];
+};
 </script>
 
 <style scoped>

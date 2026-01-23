@@ -51,6 +51,16 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+
+// 獲取所有用戶列表 (用於 Dropdown)
+app.get('/api/users', (req, res) => {
+    const query = 'SELECT id, name, role FROM users';
+    db.query(query, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, data: results });
+    });
+});
+
 // 2. 獲取專案列表 API
 app.get('/api/projects', (req, res) => {
     const query = 'SELECT * FROM projects ORDER BY created_at DESC';
@@ -61,19 +71,32 @@ app.get('/api/projects', (req, res) => {
     });
 });
 
-// 3. 創建新專案 API
+// Create Project API
 app.post('/api/projects', (req, res) => {
-    const { name, description } = req.body;
+    // 接收新欄位: startDate, endDate, sprintCount, projectManager
+    const { name, description, startDate, endDate, sprintCount, projectManager } = req.body;
     
-    const query = 'INSERT INTO projects (name, description, status) VALUES (?, ?, ?)';
+    // 更新 SQL 語句
+    const query = 'INSERT INTO projects (name, description, status, start_date, end_date, sprint_count, project_manager) VALUES (?, ?, ?, ?, ?, ?, ?)';
     
-    db.query(query, [name, description, 'To Do'], (err, result) => {
+    // 執行插入
+    db.query(query, [name, description, 'To Do', startDate, endDate, sprintCount, projectManager], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         
         res.json({ 
             success: true, 
             message: 'Project created', 
-            project: { id: result.insertId, name, description, status: 'To Do' } 
+            // 回傳完整的專案物件以便前端即時更新
+            project: { 
+                id: result.insertId, 
+                name, 
+                description, 
+                status: 'To Do',
+                start_date: startDate,
+                end_date: endDate,
+                sprint_count: sprintCount,
+                project_manager: projectManager
+            } 
         });
     });
 });

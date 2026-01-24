@@ -14,7 +14,7 @@ const commonNavItems = [
 
 // 定義每個角色的專屬導航選項
 const navItemsByRole = {
-  Admin: [
+  'Admin': [
     { label: 'My Profile', path: '/profile/admin' },
     { label: 'Manage Accounts', path: '/admin/manage-accounts' },
     { label: 'All Projects', path: '/projects' },
@@ -23,7 +23,7 @@ const navItemsByRole = {
     { label: 'All Teams', path: '/admin/teams' },
     ...commonNavItems  // ← 所有角色共用 Manage Task
   ],
-  Supervisor: [
+  'Supervisor': [
     { label: 'My Profile', path: '/profile/supervisor' },
     { label: 'Manage Accounts', path: '/supervisor/manage-accounts' },
     { label: 'Manage Sprints', path: '/supervisor/sprints' },
@@ -31,10 +31,11 @@ const navItemsByRole = {
     { label: 'My Teams', path: '/supervisor/teams' },
     ...commonNavItems
   ],
-  'Product Manager': [
-    { label: 'My Profile', path: '/profile/product-manager' },
-    { label: 'Current Sprint', path: '/product-manager/current-sprint' },
-    { label: 'Manage Project', path: '/product-manager/ProjectManager' },
+  'Project Manager': [
+    { label: 'My Profile', path: '/profile/project-manager' },
+    { label: 'Current Sprint', path: '/project-manager/current-sprint' },
+    { label: 'Manage Task', path: '/taskManager' },
+    { label: 'Manage Project', path: '/project-manager/ProjectManager' },
     ...commonNavItems
   ],
   'Business Analyst': [
@@ -45,14 +46,14 @@ const navItemsByRole = {
     { label: 'My Tasks', path: '/business-analyst/my-tasks' },
     ...commonNavItems
   ],
-  Developer: [
+  'Developer': [
     { label: 'My Profile', path: '/profile/developer' },
     { label: 'My Tasks', path: '/developer/my-tasks' },
     { label: 'Current Sprint', path: '/developer/current-sprint' },
     { label: 'My Team', path: '/developer/my-team' },
     ...commonNavItems
   ],
-  Tester: [
+  'Tester': [
     { label: 'My Profile', path: '/profile/tester' },
     { label: 'Test Cases', path: '/tester/test-cases' },
     { label: 'Current Sprint Tasks', path: '/tester/current-sprint-tasks' },

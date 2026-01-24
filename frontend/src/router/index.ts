@@ -6,12 +6,12 @@ import MainPage from '../components/MainPage.vue';
 
 import SupervisorProfile from '../components/SupervisorProfile.vue';
 import AdminProfile from '../components/AdminProfile.vue';
-import ProductManagerProfile from '../components/ProductManagerProfile.vue';
+import ProjectManagerProfile from '../components/ProjectManagerProfile.vue';
 import BusinessAnalystProfile from '../components/BusinessAnalystProfile.vue';
 import DeveloperProfile from '../components/DeveloperProfile.vue';
 import TesterProfile from '../components/TesterProfile.vue';
 import UATUserProfile from '../components/UATUserProfile.vue';
-import ProductOwnerProfile from '../components/ProductOwnerProfile.vue';
+import ProjectOwnerProfile from '../components/ProjectOwnerProfile.vue';
 
 import AdminManageAccount from '../components/AdminManageAccount.vue';
 import SupervisorManageAccount from '../components/SupervisorManageAccount.vue';
@@ -27,18 +27,18 @@ const router = createRouter({
 
     { path: '/profile/supervisor', name: 'SupervisorProfile', component: SupervisorProfile, meta: { requiresRole: 'Supervisor' } },
     { path: '/profile/admin', name: 'AdminProfile', component: AdminProfile, meta: { requiresRole: 'Admin' } },
-    { path: '/profile/product-manager', name: 'ProductManagerProfile', component: ProductManagerProfile, meta: { requiresRole: 'Product Manager' } },
+    { path: '/profile/Project-manager', name: 'ProjectManagerProfile', component: ProjectManagerProfile, meta: { requiresRole: 'Project Manager' } },
     { path: '/profile/business-analyst', name: 'BusinessAnalystProfile', component: BusinessAnalystProfile, meta: { requiresRole: 'Business Analyst' } },
     { path: '/profile/developer', name: 'DeveloperProfile', component: DeveloperProfile, meta: { requiresRole: 'Developer' } },
     { path: '/profile/tester', name: 'TesterProfile', component: TesterProfile, meta: { requiresRole: 'Tester' } },
     { path: '/profile/uat-user', name: 'UATUserProfile', component: UATUserProfile, meta: { requiresRole: 'UAT User' } },
-    { path: '/profile/product-owner', name: 'ProductOwnerProfile', component: ProductOwnerProfile, meta: { requiresRole: 'Product Owner' } },
+    { path: '/profile/Project-owner', name: 'ProjectOwnerProfile', component: ProjectOwnerProfile, meta: { requiresRole: 'Project Owner' } },
 
     { path: '/admin/manage-accounts', name: 'AdminManageAccounts', component: AdminManageAccount, meta: { requiresRole: 'Admin' } },
 
     { path: '/supervisor/manage-accounts', name: 'SupervisorManageAccounts', component: SupervisorManageAccount, meta: { requiresRole: 'Supervisor' } },
 
-    { path: '/taskManager', name: 'TaskManager', component: TaskManager, meta: { requiresAuth: true } }
+    { path: '/project-manager/taskManager', name: 'TaskManager', component: TaskManager, meta: { requiresRole: 'Project Manager' } }
   ]
 });
 

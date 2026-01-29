@@ -4,9 +4,7 @@
     <header class="header">
       <div class="title-wrapper">
         <h1>Task Manager</h1>
-        <!-- Only Product Manager can see and click "Create New Task" -->
-        <button
-          v-if="isProductManager"
+        <button       
           @click="openCreateModal"
           class="create-header-btn"
         >
@@ -48,7 +46,8 @@
               <th>User Story</th>
               <th>Assignee</th>
               <th>Role</th>
-              <th>Due Date</th>
+              <th>Sprint</th>
+              <th>No.Dates</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -66,7 +65,8 @@
               <td class="user-story-cell">{{ truncateText(task.userStory) }}</td>
               <td>{{ task.assignee || '-' }}</td>
               <td>{{ task.role || '-' }}</td>
-              <td>{{ formatDueDate(task.dueDate) || '-' }}</td>
+              <td>{{ task.sprint || '-' }}</td> <!-- Display the 'spring' column here -->
+              <td>{{ task.noDates }}</td>       <!-- Display the 'noDates' column here -->
               <td>
                 <button @click="editTask(task)" class="edit-btn">Edit</button>
               </td>
@@ -129,10 +129,21 @@
               <input v-model="currentTask.role" type="text" readonly class="readonly" />
             </div>
 
-            <div class="form-field">
-              <label>Due Date</label>
-              <input v-model="currentTask.dueDate" type="date" required />
-            </div>
+             <div class="form-field">
+                <label>Sprint (No.)</label>
+                <input 
+                  v-model.number="currentTask.sprint" 
+                  type="number" 
+                  readonly 
+                  class="readonly" 
+                  placeholder="Auto-filled"
+                />
+              </div>
+
+              <div class="form-field">
+                <label>No.Dates</label>
+                <input v-model.number="currentTask.noDates" type="number" placeholder="0" />
+              </div>
 
             <div class="form-field full-width">
               <label>User Story</label>
@@ -140,9 +151,7 @@
             </div>
 
             <div class="form-actions">
-              <!-- Only Product Manager can see and click "Save Changes" -->
               <button
-                v-if="isProductManager"
                 type="submit"
                 class="save-btn"
               >
@@ -175,14 +184,14 @@
           <form @submit.prevent="confirmCreate">
             <div class="form-grid">
               <div class="form-field">
-                <label>Project *</label>
-                <select v-model="newTask.project" required>
-                  <option value="" disabled>Select project</option>
-                  <option v-for="p in projects" :key="p.id" :value="p.name">
-                    {{ p.name }}
-                  </option>
-                </select>
-              </div>
+              <label>Project *</label>
+              <select v-model="newTask.project" @change="handleProjectChange" required>
+                <option value="" disabled>Select project</option>
+                <option v-for="p in projects" :key="p.id" :value="p.name">
+                  {{ p.name }}
+                </option>
+              </select>
+            </div>
 
               <div class="form-field">
                 <label>Title *</label>
@@ -224,8 +233,19 @@
               </div>
 
               <div class="form-field">
-                <label>Due Date</label>
-                <input v-model="newTask.dueDate" type="date" />
+                <label>Sprint (No.)</label>
+                <input 
+                  v-model.number="newTask.sprint" 
+                  type="number" 
+                  readonly 
+                  class="readonly" 
+                  placeholder="Auto-filled"
+                />
+              </div>
+
+              <div class="form-field">
+                <label>No.Dates</label>
+                <input v-model.number="newTask.noDates" type="number" placeholder="0" />
               </div>
 
               <div class="form-field full-width">
@@ -253,9 +273,8 @@ import axios from 'axios';
 const router = useRouter();
 
 const userRole = ref<string>('');
-const isProductManager = computed(() => userRole.value === 'Product Manager');
 
-const projects = ref<{ id: number; name: string }[]>([]);
+const projects = ref<{ id: number; name: string; sprint_count: number }[]>([]);
 const selectedProject = ref<string | null>(null);
 const tasks = ref<any[]>([]);
 const isLoading = ref(false);
@@ -264,27 +283,30 @@ const showCreateModal = ref(false);
 const isEditing = ref(false);
 
 const newTask = reactive({
-  project: '',
-  title: '',
-  status: 'To Do',
-  priority: 'Medium',
-  userStory: '',
-  assignee: '',
-  role: '',
-  dueDate: ''
+    project: '',
+    title: '',
+    status: 'To Do',
+    priority: 'Medium',
+    userStory: '',
+    assignee: '',
+    role: '',
+    sprint: null,   // Matches DB 'sprint' column (INT)
+    noDates: 0      // Matches DB 'noDates' column (INT)
 });
 
 const currentTask = reactive({
-  id: null as number | null,
-  project: '',
-  title: '',
-  status: 'To Do',
-  priority: 'Medium',
-  userStory: '',
-  assignee: '',
-  role: '',
-  dueDate: ''
+    id: null as number | null,
+    project: '',
+    title: '',
+    status: 'To Do',
+    priority: 'Medium',
+    userStory: '',
+    assignee: '',
+    role: '',
+    sprint: null as number | null, // Fixed typo
+    noDates: 0                     
 });
+
 
 const filteredTasks = computed(() => {
   if (!selectedProject.value) return tasks.value;
@@ -300,10 +322,12 @@ const fetchProjects = async () => {
   try {
     const res = await axios.get('http://localhost:3000/api/projects');
     if (res.data.success) {
-      projects.value = res.data.data;
+      projects.value = res.data.data; // Now includes sprint_count from the DB
       if (projects.value.length > 0 && !selectedProject.value) {
         selectedProject.value = projects.value[0].name;
         newTask.project = projects.value[0].name;
+        // Initial auto-fill for the first project
+        newTask.sprint = projects.value[0].sprint_count; 
       }
     }
   } catch (err) {
@@ -334,7 +358,8 @@ const fetchTasks = async () => {
     if (res.data.success) {
       tasks.value = res.data.data.map((t: any) => ({
         ...t,
-        id: String(t.id).padStart(3, '0')
+        id: String(t.id).padStart(3, '0'),
+        noDates: t.noDates // Ensure noDates is included
       }));
     }
   } catch (err) {
@@ -345,12 +370,13 @@ const fetchTasks = async () => {
 };
 
 const confirmCreate = async () => {
-  if (!newTask.project || !newTask.title || !newTask.role) {
-    alert('Please fill in the required fields.');
+  if (!newTask.project || !newTask.title) {
+    alert('Please fill in required fields (Project and Title).');
     return;
   }
 
   try {
+    // Map frontend reactive data to the payload expected by the backend
     const payload = {
       project: newTask.project,
       title: newTask.title,
@@ -358,32 +384,38 @@ const confirmCreate = async () => {
       priority: newTask.priority,
       userStory: newTask.userStory.trim() || null,
       assignee: newTask.assignee.trim() || null,
-      role: newTask.role.trim() || null,
-      dueDate: newTask.dueDate || null,
+      role: newTask.role.trim() || 'Default Role',
+      sprint: newTask.sprint,   // Added
+      noDates: newTask.noDates  // Added (This maps to the INT column in DB)
     };
 
     const res = await axios.post('http://localhost:3000/api/tasks', payload);
     if (res.data.success) {
       alert('Task created successfully!');
-      await fetchTasks();
+      await fetchTasks(); // Refresh the list
       closeCreateModal();
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error during task creation:', err);
     alert('Creation failed: ' + (err.response?.data?.message || err.message));
   }
 };
 
+// openCreateModal  include the initial sprint sync
 const openCreateModal = () => {
+  const initialProjectName = selectedProject.value || (projects.value[0]?.name || '');
+  const initialSprint = projects.value.find(p => p.name === initialProjectName)?.sprint_count || null;
+
   Object.assign(newTask, {
-    project: selectedProject.value || (projects.value[0]?.name || ''),
+    project: initialProjectName,
     title: '',
     status: 'To Do',
     priority: 'Medium',
     userStory: '',
     assignee: '',
     role: '',
-    dueDate: ''
+    sprint: initialSprint, // Set sprint from projects table
+    noDates: 0
   });
   showCreateModal.value = true;
 };
@@ -401,6 +433,16 @@ const autoFillRoleCreate = () => {
   newTask.role = user?.role || 'Default Role';
 };
 
+//  auto-fill sprint based on selected project
+const handleProjectChange = () => {
+  const selectedProj = projects.value.find(p => p.name === newTask.project);
+  if (selectedProj) {
+    newTask.sprint = selectedProj.sprint_count;
+  } else {
+    newTask.sprint = null;
+  }
+};
+
 const editTask = (task: any) => {
   currentTask.id = task.id;
   currentTask.project = task.project;
@@ -410,7 +452,10 @@ const editTask = (task: any) => {
   currentTask.userStory = task.userStory || '';
   currentTask.assignee = task.assignee || '';
   currentTask.role = task.role || '';
-  currentTask.dueDate = task.dueDate ? task.dueDate.split('T')[0] : '';
+  
+  // Map these two from the 'task' parameter (which comes from the table row)
+  currentTask.sprint = task.sprint; 
+  currentTask.noDates = task.noDates || 0;
 
   isEditing.value = true;
   setTimeout(() => {
@@ -439,7 +484,8 @@ const saveTask = async () => {
       userStory: currentTask.userStory.trim() || null,
       assignee: currentTask.assignee.trim() || null,
       role: currentTask.role.trim() || null,
-      dueDate: currentTask.dueDate ? currentTask.dueDate.split('T')[0] : null
+      sprint: currentTask.sprint,   // Added
+      noDates: currentTask.noDates  // Added
     };
 
     const res = await axios.put(`http://localhost:3000/api/tasks/${currentTask.id}`, payload);
@@ -448,7 +494,7 @@ const saveTask = async () => {
       await fetchTasks();
       isEditing.value = false;
     }
-  } catch (err) {
+  } catch (err: any) {
     alert('Update failed: ' + (err.response?.data?.message || err.message));
   }
 };
@@ -472,10 +518,7 @@ onMounted(async () => {
   ]);
 });
 
-const formatDueDate = (dateString: string) => {
-  if (!dateString) return '';
-  return dateString.split('T')[0];
-};
+
 </script>
 
 <style scoped>

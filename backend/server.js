@@ -155,22 +155,7 @@ app.get('/api/users/me', (req, res) => {
   });
 });
 
-// Get current user's tasks (之後用番呢個)
-// app.get('/api/tasks/my', (req, res) => {
-//   const token = req.headers.authorization?.split(' ')[1];
-//   if (!token) return res.status(401).json({ message: 'No token provided' });
 
-//   // 從 token 取出 userId
-//   if (!token.startsWith('dummy-token-')) return res.status(403).json({ message: 'Invalid token format' });
-//   const userId = token.split('-')[2];
-//   if (!userId || isNaN(userId)) return res.status(403).json({ message: 'Invalid token' });
-
-//   const query = 'SELECT * FROM task_manager WHERE assignee = ?';
-//   db.query(query, [userId], (err, results) => {
-//     if (err) return res.status(500).json({ message: '查詢失敗' });
-//     res.json(results);
-//   });
-// });
 
 // Get current user's tasks (Demo用)
 app.get('/api/tasks/my', (req, res) => {
@@ -464,40 +449,46 @@ app.get('/api/tasks', (req, res) => {
 
 // Create New Task API
 app.post('/api/tasks', (req, res) => {
-  const { project, title, status, priority, assignee, dueDate, userStory } = req.body;
+  // Extract all fields based on the DB design in your image
+  const { 
+    project, 
+    title, 
+    status, 
+    priority, 
+    assignee, 
+    role, 
+    sprint, 
+    noDates, 
+    userStory 
+  } = req.body;
 
+  // The query must match the column names in your task_manager table
   const query = `
-    INSERT INTO task_manager (project, title, status, priority, assignee, dueDate, userStory)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO task_manager (project, title, status, priority, assignee, role, sprint, noDates, userStory)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
+  // Ensure integers are parsed correctly for DB safety
   db.query(query, [
     project,
     title,
     status,
     priority,
     assignee || null,
-    dueDate || null,
+    role || 'Default Role',
+    sprint ? parseInt(sprint) : null,     // Column 'sprint' is INT
+    noDates ? parseInt(noDates) : 0,      // Column 'noDates' is INT and NN (Not Null)
     userStory || null
   ], (err, result) => {
     if (err) {
-      console.error('建立任務錯誤:', err);
-      return res.status(500).json({ success: false, error: '建立任務失敗: ' + err.message });
+      console.error('Database Error:', err);
+      return res.status(500).json({ success: false, error: 'Database failed: ' + err.message });
     }
 
     res.json({
       success: true,
-      message: 'Task created',
-      task: {
-        id: result.insertId,
-        project,
-        title,
-        status,
-        priority,
-        assignee,
-        dueDate,
-        userStory
-      }
+      message: 'Task created successfully',
+      taskId: result.insertId
     });
   });
 });
@@ -505,11 +496,22 @@ app.post('/api/tasks', (req, res) => {
 // Update Task API
 app.put('/api/tasks/:id', (req, res) => {
   const taskId = req.params.id;
-  const { project, title, status, priority, userStory, assignee, role, dueDate } = req.body;
+  const { 
+    project, 
+    title, 
+    status, 
+    priority, 
+    userStory, 
+    assignee, 
+    role, 
+    sprint,    // Get from body
+    noDates    // Get from body
+  } = req.body;
 
+  // Updated SQL: Added sprint = ? and noDates = ?
   const query = `
     UPDATE task_manager
-    SET project = ?, title = ?, status = ?, priority = ?, userStory = ?, assignee = ?, role = ?, dueDate = ?
+    SET project = ?, title = ?, status = ?, priority = ?, userStory = ?, assignee = ?, role = ?, sprint = ?, noDates = ?
     WHERE id = ?
   `;
 
@@ -521,7 +523,8 @@ app.put('/api/tasks/:id', (req, res) => {
     userStory || null,
     assignee || null,
     role || null,
-    dueDate || null,
+    sprint ? parseInt(sprint) : null, // Handle INT
+    noDates ? parseInt(noDates) : 0,  // Handle INT
     taskId
   ], (err, result) => {
     if (err) {

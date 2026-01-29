@@ -14,12 +14,12 @@ const profile = ref({
 // 載入當前使用者資料（從後端 API）
 const loadProfile = async () => {
   try {
-    const response = await axios.get('/api/users/me', {
+    const response = await axios.get('http://localhost:3000/api/users/me', {  // ← 改成完整 URL
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
       }
     })
-    profile.value = response.data // 後端回 { id, name, email, role, created_at }
+    profile.value = response.data
   } catch (error) {
     console.error('Fail to load data', error)
     alert('Cannot load user data, please login again')
@@ -44,20 +44,23 @@ const closePwdModal = () => {
 }
 
 const submitPwd = async () => {
+  const trimmedCurrent = currentPwd.value.trim();
+  const trimmedNew = newPwd.value.trim();
+
   if (newPwd.value !== confirmPwd.value) {
     alert('New password do not match！')
     return
   }
 
-  if (!currentPwd.value || !newPwd.value) {
+  if (!trimmedCurrent || !trimmedNew) {
     alert('Please fill in all the field！')
     return
   }
 
   try {
-    const response = await axios.post('/api/users/change-password', {
-      currentPassword: currentPwd.value,
-      newPassword: newPwd.value
+    const response = await axios.post('http://localhost:3000/api/users/change-password', {
+      currentPassword: trimmedCurrent,  // ← 用 trimmed
+      newPassword: trimmedNew           // ← 用 trimmed
     }, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -66,7 +69,7 @@ const submitPwd = async () => {
 
     alert('Password updated, please login again')
     closePwdModal()
-    logout()  // 登出讓使用者用新密碼重新登入
+    logout()
   } catch (error) {
     console.error('fail to change pasword:', error)
     const errMsg = error.response?.data?.message || 'unknown error, please try again later'

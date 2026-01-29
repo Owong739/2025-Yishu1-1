@@ -104,17 +104,17 @@ app.post('/api/projects', (req, res) => {
 // 4. 使用者管理 API
 
 // 獲取所有使用者列表
-app.get('/api/users', (req, res) => {
-  const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC';
+// app.get('/api/users', (req, res) => {
+//   const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC';
   
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('Error fetching users:', err);
-      return res.status(500).json({ message: 'Failed to fetch users' });
-    }
-    res.json(results);
-  });
-});
+//   db.query(query, (err, results) => {
+//     if (err) {
+//       console.error('Error fetching users:', err);
+//       return res.status(500).json({ message: 'Failed to fetch users' });
+//     }
+//     res.json(results);
+//   });
+// });
 
 // get current user data
 app.get('/api/users/me', (req, res) => {
@@ -245,10 +245,18 @@ app.post('/api/users', (req, res) => {
 
 // Modify current user password
 app.post('/api/users/change-password', (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  console.log('Change Password 請求收到');  // ← 加 log 確認請求到達
+
+  const token = 
+  req.headers.authorization?.split(' ')[1];
+  console.log('Token:', token);  // ← 加 log
+
   if (!token) return res.status(401).json({ message: 'No token provided' });
 
   const { currentPassword, newPassword } = req.body;
+  console.log('Received currentPassword:', currentPassword);  // ← 加 log
+  console.log('Received newPassword:', newPassword);  // ← 加 log
+
   if (!currentPassword || !newPassword) return res.status(400).json({ message: '請填寫所有欄位' });
 
   // 從 token 取出 userId
@@ -258,16 +266,33 @@ app.post('/api/users/change-password', (req, res) => {
 
   const checkQuery = 'SELECT password FROM users WHERE id = ?';
   db.query(checkQuery, [userId], (err, results) => {
-    if (err) return res.status(500).json({ message: '查詢失敗' });
+    if (err) {
+      console.error('查詢舊密碼錯誤:', err);
+      return res.status(500).json({ message: '查詢失敗' });
+    }
     if (results.length === 0) return res.status(404).json({ message: 'User not found' });
 
-    if (results[0].password !== currentPassword) {
+    // 加 trim 避免空格問題
+    const dbPassword = (results[0].password || '').trim();
+    const inputCurrent = (currentPassword || '').trim();
+
+    console.log('DB password (trimmed):', dbPassword);  // ← 加 log
+    console.log('Input current (trimmed):', inputCurrent);  // ← 加 log
+
+    if (dbPassword !== inputCurrent) {
+      console.log('舊密碼不匹配');
       return res.status(401).json({ message: '當前密碼錯誤' });
     }
 
+    const trimmedNew = (newPassword || '').trim();
+
     const updateQuery = 'UPDATE users SET password = ? WHERE id = ?';
-    db.query(updateQuery, [newPassword, userId], (err) => {
-      if (err) return res.status(500).json({ message: '更新失敗' });
+    db.query(updateQuery, [trimmedNew, userId], (err) => {
+      if (err) {
+        console.error('更新密碼錯誤:', err);
+        return res.status(500).json({ message: '更新失敗' });
+      }
+      console.log('密碼更新成功，userId:', userId);
       res.json({ message: '密碼更新成功' });
     });
   });

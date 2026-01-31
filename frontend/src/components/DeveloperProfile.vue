@@ -23,14 +23,14 @@ const tasks = ref([])
 const teams = ref([])
 const sprints = ref([])
 
-// 載入個人資料從 DB
+
+// 載入個人資料從 DB（改成完整 URL，避開 proxy 問題）
 const loadUserInfo = async () => {
   try {
-    const response = await axios.get('/api/users/me', {
+    const response = await axios.get('http://localhost:3000/api/users/me', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     userInfo.value = response.data
-    //editForm.value = { name: userInfo.value.name, email: userInfo.value.email }
   } catch (error) {
     console.error('Fail to load data:', error)
     alert('Cannot load user data, please login again')
@@ -38,10 +38,10 @@ const loadUserInfo = async () => {
   }
 }
 
-// 載入 My Tasks（從 DB）
+// 載入 My Tasks（從 DB）（改成完整 URL，避開 proxy 問題）
 const loadTasks = async () => {
   try {
-    const response = await axios.get('/api/tasks/my', {
+    const response = await axios.get('http://localhost:3000/api/tasks/my', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     tasks.value = response.data
@@ -54,8 +54,6 @@ const loadTasks = async () => {
 onMounted(() => {
   loadUserInfo()
   loadTasks()
-  // 暫時不呼叫 loadTeams() 和 loadSprints()，避免 404 錯誤
-  // 未來實作時再打開
 })
 
 // Change Password
@@ -66,19 +64,33 @@ const openChangePasswordModal = () => {
 const closeChangePasswordModal = () => showChangePasswordModal.value = false
 
 const submitChangePassword = async () => {
-  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+  // 加 trim 避免空格問題
+  const trimmedCurrent = passwordForm.value.currentPassword.trim()
+  const trimmedNew = passwordForm.value.newPassword.trim()
+
+  if (trimmedNew !== passwordForm.value.confirmPassword.trim()) {
     alert('New password do not match')
     return
   }
 
+  if (!trimmedCurrent || !trimmedNew) {
+    alert('Please fill in all the field！')
+    return
+  }
+
   try {
-    await axios.post('/api/users/change-password', passwordForm.value, {
+    await axios.post('http://localhost:3000/api/users/change-password', {  // 改成完整 URL
+      currentPassword: trimmedCurrent,
+      newPassword: trimmedNew
+    }, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     alert('Password updated, please login again!')
     logout()
   } catch (error) {
-    alert('Password update failed: ' + (error.response?.data?.message || 'error'))
+    console.error('Password update failed:', error)
+    const errMsg = error.response?.data?.message || 'unknown error'
+    alert('Password update failed: ' + errMsg)
   }
 }
 

@@ -44,7 +44,7 @@ const createForm = ref({ name: '', email: '', password: '', role: 'Developer' })
 const roles = [
   'Supervisor',
   'Admin',
-  'Product Manager',
+  'Project Manager',
   'Business Analyst',
   'Developer',
   'Tester',

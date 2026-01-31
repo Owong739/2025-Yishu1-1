@@ -23,39 +23,39 @@ const tasks = ref([])
 const teams = ref([])
 const sprints = ref([])
 
-// 載入個人資料從 DB
+// 載入個人資料從 DB（完整 URL）
 const loadUserInfo = async () => {
   try {
-    const response = await axios.get('/api/users/me', {
+    const response = await axios.get('http://localhost:3000/api/users/me', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
+    console.log('Profile data loaded:', response.data)  // debug 用，看控制台
     userInfo.value = response.data
-    //editForm.value = { name: userInfo.value.name, email: userInfo.value.email }
   } catch (error) {
-    console.error('Fail to load data:', error)
+    console.error('Fail to load profile data:', error)
     alert('Cannot load user data, please login again')
     router.push('/')
   }
 }
 
-// 載入 My Tasks（從 DB）
+// 載入 My Tasks（從 DB）（完整 URL）
 const loadTasks = async () => {
   try {
-    const response = await axios.get('/api/tasks/my', {
+    const response = await axios.get('http://localhost:3000/api/tasks/my', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
+    console.log('Tasks data loaded:', response.data)  // debug 用
     tasks.value = response.data
   } catch (error) {
     console.error('Load tasks fail:', error)
-    alert('Cannot load tasks')
+    // 不 alert，讓頁面顯示 "No tasks"
   }
 }
 
-onMounted(() => {
-  loadUserInfo()
-  loadTasks()
-  // 暫時不呼叫 loadTeams() 和 loadSprints()，避免 404 錯誤
-  // 未來實作時再打開
+onMounted(async () => {
+  await loadUserInfo()
+  await loadTasks()
+  isLoading.value = false  // 載入完成
 })
 
 // Change Password
@@ -66,22 +66,34 @@ const openChangePasswordModal = () => {
 const closeChangePasswordModal = () => showChangePasswordModal.value = false
 
 const submitChangePassword = async () => {
-  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+  const trimmedCurrent = passwordForm.value.currentPassword.trim()
+  const trimmedNew = passwordForm.value.newPassword.trim()
+
+  if (trimmedNew !== passwordForm.value.confirmPassword.trim()) {
     alert('New password do not match')
     return
   }
 
+  if (!trimmedCurrent || !trimmedNew) {
+    alert('Please fill in all the field！')
+    return
+  }
+
   try {
-    await axios.post('/api/users/change-password', passwordForm.value, {
+    await axios.post('http://localhost:3000/api/users/change-password', {
+      currentPassword: trimmedCurrent,
+      newPassword: trimmedNew
+    }, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     alert('Password updated, please login again!')
     logout()
   } catch (error) {
-    alert('Password update failed: ' + (error.response?.data?.message || 'error'))
+    console.error('Password update failed:', error)
+    const errMsg = error.response?.data?.message || 'unknown error'
+    alert('Password update failed: ' + errMsg)
   }
 }
-
 // Edit Profile
 // const openEditModal = () => {
 //   showEditModal.value = true
@@ -113,55 +125,57 @@ const logout = () => {
   <div class="profile-page">
     <h1>Project Manager Profile</h1>
 
-    <!-- My Profile -->
-    <div class="section">
-      <h2>My Profile</h2>
-      <div class="info">
-        <div>Id: {{ userInfo?.id }}</div>
-        <div>Username: {{ userInfo?.name }}</div>
-        <div>Email: {{ userInfo?.email }}</div>
-        <div>Role: {{ userInfo?.role }}</div>
+    <!-- Loading 狀態 -->
+    <div v-if="isLoading" class="loading">Loading profile and tasks...</div>
+
+    <div v-else>
+      <!-- My Profile -->
+      <div class="section">
+        <h2>My Profile</h2>
+        <div class="info">
+          <div>Id: {{ userInfo?.id || 'No data' }}</div>
+          <div>Username: {{ userInfo?.name || 'No data' }}</div>
+          <div>Email: {{ userInfo?.email || 'No data' }}</div>
+          <div>Role: {{ userInfo?.role || 'No data' }}</div>
+        </div>
+        <button class="btn" @click="openChangePasswordModal">Change Password</button>
       </div>
-      <button class="btn" @click="openChangePasswordModal">Change Password</button>
-      <!-- <button class="btn" @click="openEditModal">Edit</button> -->
-    </div>
 
-    <!-- My Tasks -->
-    <div class="section">
-  <h2>My Tasks</h2>
-  <div v-for="task in tasks" :key="task.id" class="task-item">
-    <div>ID: {{ task.id }}</div>
-    <div>Project: {{ task.project }}</div>
-    <div>Title: {{ task.title }}</div>
-    <div>Status: {{ task.status }}</div>
-    <div>Priority: {{ task.priority }}</div>
-    <div>Assignee: {{ task.assignee || '-' }}</div>
-    <div>Role: {{ task.role || '-' }}</div>
-    <div>Due Date: {{ task.dueDate || '-' }}</div>
+      <!-- My Tasks -->
+      <div class="section">
+        <h2>My Tasks</h2>
+        <div v-if="tasks.length === 0">No tasks</div>
+        <div v-else v-for="task in tasks" :key="task.id" class="task-item">
+          <div>ID: {{ task.id }}</div>
+          <div>Project: {{ task.project }}</div>
+          <div>Title: {{ task.title }}</div>
+          <div>Status: {{ task.status }}</div>
+          <div>Priority: {{ task.priority }}</div>
+          <div>Assignee: {{ task.assignee || '-' }}</div>
+          <div>Role: {{ task.role || '-' }}</div>
+          <div>Due Date: {{ task.dueDate || '-' }}</div>
 
-    <div class="user-story-section">
-      <strong>User Story:</strong>
-      <div v-if="task.userStory" class="user-story-content">
-        <pre>{{ task.userStory }}</pre>  <!-- 用 pre 保留換行與空格 -->
+          <div class="user-story-section">
+            <strong>User Story:</strong>
+            <div v-if="task.userStory" class="user-story-content">
+              <pre>{{ task.userStory }}</pre>
+            </div>
+            <div v-else class="no-story">No User Story</div>
+          </div>
+        </div>
       </div>
-      <div v-else class="no-story">No User Story</div>
-    </div>
-  </div>
-  <div v-if="tasks.length === 0">No tasks</div>
-</div>
 
-    <!-- My Teams （保留區塊，暫時空內容） -->
-    <div class="section">
-      <h2>My Teams</h2>
-      <div v-if="teams.length === 0">No teams yet</div>
-      <!-- 未來取消註解後，這裡會顯示 teams 列表 -->
-    </div>
+      <!-- My Teams -->
+      <div class="section">
+        <h2>My Teams</h2>
+        <div v-if="teams.length === 0">No teams yet</div>
+      </div>
 
-    <!-- My Sprints （保留區塊，暫時空內容） -->
-    <div class="section">
-      <h2>My Sprints</h2>
-      <div v-if="sprints.length === 0">No sprints yet</div>
-      <!-- 未來取消註解後，這裡會顯示 sprints 列表 -->
+      <!-- My Sprints -->
+      <div class="section">
+        <h2>My Sprints</h2>
+        <div v-if="sprints.length === 0">No sprints yet</div>
+      </div>
     </div>
 
     <!-- Change Password Modal -->
@@ -186,6 +200,7 @@ const logout = () => {
         </div>
       </div>
     </div>
+  </div>
 
     <!-- Edit Modal -->
     <!-- <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
@@ -213,7 +228,6 @@ const logout = () => {
         </div>
       </div>
     </div> -->
-  </div>
 </template>
 
 <style scoped>

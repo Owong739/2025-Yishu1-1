@@ -11,21 +11,19 @@ const loadUsers = async () => {
   isLoading.value = true
   errorMsg.value = ''
   try {
-    const response = await axios.get('/api/users', {
+    const res = await axios.get('http://localhost:3000/api/users', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
     })
-    users.value = response.data || []
-  } catch (error) {
-    errorMsg.value = '無法載入使用者列表，請檢查後端或重新登入'
-    console.error('載入失敗:', error)
+    users.value = res.data.data || [] 
+  } catch (err) {
+    console.error('Fail to load user data', err)
+    errorMsg.value = 'Cannot load user data'
   } finally {
     isLoading.value = false
   }
 }
 
-onMounted(() => {
-  loadUsers()
-})
+onMounted(loadUsers)
 
 // Search
 const searchTerm = ref('')

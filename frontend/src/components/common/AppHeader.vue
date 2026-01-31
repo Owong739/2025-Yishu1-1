@@ -33,7 +33,7 @@ const navItemsByRole = {
   'Project Manager': [
     { label: 'My Profile', path: '/profile/project-manager' },
     { label: 'Current Sprint', path: '/project-manager/current-sprint' },
-    { label: 'Manage Task', path: '/taskManager' },
+    { label: 'Manage Task', path: '/project-manager/taskManager' },
     { label: 'Manage Project', path: '/project-manager/ProjectManager' },
 
   ],

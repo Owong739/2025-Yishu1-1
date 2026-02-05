@@ -1,33 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref } from 'vue'
 
-// Loading user data from API
+// Profile Data (模擬資料，之後會從後端來)
 const profile = ref({
-  id: null,
-  name: '',
-  email: '',
-  role: '',
-  created_at: ''
-})
-
-const loadProfile = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/api/users/me', {  // ← Change to complete URL
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    profile.value = response.data // 後端回 { id, name, email, role, created_at }
-  } catch (error) {
-    console.error('Fail to load data', error)
-    alert('Cannot load user data, please login again')
-  }
-}
-
-// Get the user data while loading
-onMounted(() => {
-  loadProfile()
+  id: 's114',
+  username: 'David',
+  email: 'david@project.xxx',
+  contact: '5566',
+  role: 'Product Manager'
 })
 
 // Change Password Modal
@@ -41,103 +21,70 @@ const closePwdModal = () => {
   showPwdModal.value = false
   currentPwd.value = newPwd.value = confirmPwd.value = ''
 }
-
-const submitPwd = async () => {
+const submitPwd = () => {
   if (newPwd.value !== confirmPwd.value) {
-    alert('New password do not match！')
+    alert('New passwords do not match!')
     return
   }
-
   if (!currentPwd.value || !newPwd.value) {
-    alert('Please fill in all the field！')
+    alert('Please fill in all fields!')
     return
   }
-
-  try {
-    const response = await axios.post('http://localhost:3000/api/users/change-password', {
-      currentPassword: trimmedCurrent,  //  Use trimmed to reduce space when it exist
-      newPassword: trimmedNew           
-    }, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-
-    alert('Password updated, please login again')
-    closePwdModal()
-    logout()  // 登出讓使用者用新密碼重新登入
-  } catch (error) {
-    console.error('fail to change pasword:', error)
-    const errMsg = error.response?.data?.message || 'unknown error, please try again later'
-    alert('change failed：' + errMsg)
-  }
+  alert('Password changed successfully! (模擬成功)')
+  closePwdModal()
 }
 
-// Logout (Call After changed password)
-const logout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('userRole')
-  localStorage.removeItem('user')
-  location.href = '/'  // redirect to login page
+// Edit Profile Modal
+const showEditModal = ref(false)
+const editForm = ref({ ...profile.value })
+
+const openEditModal = () => {
+  editForm.value = { ...profile.value }
+  showEditModal.value = true
 }
+const closeEditModal = () => { showEditModal.value = false }
 
-// Edit Profile Modal）
-// const showEditModal = ref(false)
-// const editForm = ref({ ...profile.value })
-
-// const openEditModal = () => {
-//   editForm.value = { ...profile.value }
-//   showEditModal.value = true
-// }
-// const closeEditModal = () => { showEditModal.value = false }
-
-// const saveEdit = async () => {
-//   try {
-//     await axios.patch('/api/users/me', {
-//       name: editForm.value.name,
-//       email: editForm.value.email
-//     }, {
-//       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-//     })
-//     profile.value.name = editForm.value.name
-//     profile.value.email = editForm.value.email
-//     alert('data update successfully！')
-//     closeEditModal()
-//   } catch (error) {
-//     alert('update failed, please try again later')
-//   }
-// }
+const saveEdit = () => {
+  profile.value.username = editForm.value.username
+  profile.value.email = editForm.value.email
+  profile.value.contact = editForm.value.contact
+  // role 不能改，所以不更新
+  alert('Profile updated successfully! (模擬更新)')
+  closeEditModal()
+}
 </script>
 
 <template>
-  <div class="admin-page">
+  <div class="profile-page">
     <!-- My Profile Card -->
     <div class="profile-card">
       <h2>My Profile</h2>
       <div class="info">
-        <p v-if="profile.id"><strong>ID:</strong> {{ profile.id }}</p>
-        <p><strong>Name:</strong> {{ profile.name || '載入中...' }}</p>
-        <p><strong>Email:</strong> {{ profile.email || '載入中...' }}</p>
-        <p><strong>Role:</strong> {{ profile.role || '載入中...' }}</p>
-        <p v-if="profile.created_at"><strong>Created At:</strong> {{ profile.created_at }}</p>
+        <p><strong>ID:</strong> {{ profile.id }}</p>
+        <p><strong>Username:</strong> {{ profile.username }}</p>
+        <p><strong>Email:</strong> {{ profile.email }}</p>
+        <p><strong>Contact:</strong> {{ profile.contact }}</p>
+        <p><strong>Role:</strong> {{ profile.role }}</p>
       </div>
       <div class="buttons">
         <button class="btn-secondary" @click="openPwdModal">Change Password</button>
-        <!-- <button class="btn-primary" @click="openEditModal">Edit Profile</button> -->
+        <button class="btn-primary" @click="openEditModal">Edit</button>
       </div>
     </div>
 
-    <!-- Modal -->
+    <!-- ================== Modals ================== -->
     <teleport to="body">
       <!-- Change Password Modal -->
       <div v-if="showPwdModal" class="modal-overlay" @click="closePwdModal">
         <div class="modal-content" @click.stop>
           <h2>Change Password</h2>
-          <p class="user-info">Name: {{ profile.name }}</p>
+          <p class="user-info">ID: {{ profile.id }}</p>
+          <p class="user-info">Username: {{ profile.username }}</p>
 
           <div class="form-group">
             <label>Current Password</label>
             <input type="password" v-model="currentPwd" />
+            <a href="#" class="forgot-link">Forgot password?</a>
           </div>
           <div class="form-group">
             <label>New Password</label>
@@ -156,7 +103,7 @@ const logout = () => {
       </div>
 
       <!-- Edit Profile Modal -->
-      <!-- <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
+      <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
         <div class="modal-content" @click.stop>
           <h2>Edit Profile</h2>
 
@@ -165,12 +112,16 @@ const logout = () => {
             <input type="text" :value="profile.id" disabled />
           </div>
           <div class="form-group">
-            <label>Name:</label>
-            <input type="text" v-model="editForm.name" />
+            <label>Username:</label>
+            <input type="text" v-model="editForm.username" />
           </div>
           <div class="form-group">
             <label>Email:</label>
             <input type="email" v-model="editForm.email" />
+          </div>
+          <div class="form-group">
+            <label>Contact:</label>
+            <input type="text" v-model="editForm.contact" />
           </div>
           <div class="form-group">
             <label>Role:</label>
@@ -182,14 +133,13 @@ const logout = () => {
             <button class="btn-cancel" @click="closeEditModal">Cancel</button>
           </div>
         </div>
-      </div> -->
+      </div>
     </teleport>
   </div>
 </template>
 
 <style scoped>
-/* Layout - exactly the same as MemberAccount */
-.admin-page {
+.profile-page {
   min-height: 100vh;
   background: #f8fafc;
   padding: 3rem 2rem;
@@ -205,7 +155,7 @@ const logout = () => {
   padding: 2.5rem;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
   width: 100%;
-  max-width: 500px;
+  max-width: 520px;
 }
 
 h2 {
@@ -232,6 +182,7 @@ h2 {
   gap: 1rem;
   margin-top: 3rem;
 }
+
 button {
   flex: 1;
   padding: 0.9rem;
@@ -239,13 +190,22 @@ button {
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
 }
-.btn-secondary { background: #e2e8f0; color: #475569; }
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #475569;
+}
 .btn-secondary:hover { background: #cbd5e1; }
-.btn-primary { background: #3b82f6; color: white; }
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
 .btn-primary:hover { background: #2563eb; }
 
-/* Modal Styles */
+/* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -262,28 +222,59 @@ button {
   width: 90%;
   max-width: 420px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-  color: #0f172a;
 }
 .modal-content h2 {
   text-align: center;
   margin-bottom: 1.5rem;
   font-size: 1.6rem;
 }
-.user-info { margin: 0.5rem 0; color: #4b5563; font-size: 1rem; }
-.form-group { margin-bottom: 1.2rem; }
-.form-group label { display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 500; }
+.user-info {
+  margin: 0.5rem 0;
+  color: #4b5563;
+  font-size: 1rem;
+}
+.form-group {
+  margin-bottom: 1.2rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-weight: 500;
+}
 .form-group input {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
-  color: #0f172a;
 }
-.form-group input:disabled { background: #f3f4f6; color: #6b7280; }
-.forgot-link { display: block; margin-top: 0.5rem; color: #3b82f6; font-size: 0.9rem; text-decoration: none; }
-.role-btn { background: #e5e7eb; color: #4b5563; padding: 0.6rem 1.2rem; border: none; border-radius: 8px; cursor: not-allowed; }
-.modal-actions { display: flex; gap: 1rem; margin-top: 2rem; }
+.form-group input:disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+.forgot-link {
+  display: block;
+  margin-top: 0.5rem;
+  color: #3b82f6;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.role-btn {
+  background: #e5e7eb;
+  color: #4b5563;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: not-allowed;
+  width: 100%;
+  text-align: left;
+}
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
 .btn-submit, .btn-cancel {
   flex: 1;
   padding: 0.8rem;

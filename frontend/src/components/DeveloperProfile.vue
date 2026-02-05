@@ -26,10 +26,11 @@ const sprints = ref([])
 // Load personal data from db（change to Complete URL to reduce proxy problem）
 const loadUserInfo = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/users/me', {
+    const response = await axios.get('/api/users/me', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     userInfo.value = response.data
+    //editForm.value = { name: userInfo.value.name, email: userInfo.value.email }
   } catch (error) {
     console.error('Fail to load data:', error)
     alert('Cannot load user data, please login again')
@@ -40,7 +41,7 @@ const loadUserInfo = async () => {
 // Load My Tasks data from db（change to Complete URL to reduce proxy problem）
 const loadTasks = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/tasks/my', {
+    const response = await axios.get('/api/tasks/my', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     tasks.value = response.data
@@ -53,6 +54,8 @@ const loadTasks = async () => {
 onMounted(() => {
   loadUserInfo()
   loadTasks()
+  // 暫時不呼叫 loadTeams() 和 loadSprints()，避免 404 錯誤
+  // 未來實作時再打開
 })
 
 // Change Password
@@ -72,24 +75,14 @@ const submitChangePassword = async () => {
     return
   }
 
-  if (!trimmedCurrent || !trimmedNew) {
-    alert('Please fill in all the field！')
-    return
-  }
-
   try {
-    await axios.post('http://localhost:3000/api/users/change-password', {  // 改成完整 URL
-      currentPassword: trimmedCurrent,
-      newPassword: trimmedNew
-    }, {
+    await axios.post('/api/users/change-password', passwordForm.value, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     alert('Password updated, please login again!')
     logout()
   } catch (error) {
-    console.error('Password update failed:', error)
-    const errMsg = error.response?.data?.message || 'unknown error'
-    alert('Password update failed: ' + errMsg)
+    alert('Password update failed: ' + (error.response?.data?.message || 'error'))
   }
 }
 

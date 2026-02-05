@@ -18,15 +18,15 @@ const handleLogin = async () => {
     if (response.data.success) {
       const user = response.data.user;
 
-      // 存 token 和 role（加 trim + toLowerCase 統一小寫）
+      // 存 token 和 role
       localStorage.setItem('token', 'dummy-token-' + user.id);
-      localStorage.setItem('userRole', user.role.trim().toLowerCase());  // ← 改成這行
+      localStorage.setItem('userRole', user.role.trim());
       localStorage.setItem('user', JSON.stringify(user));
 
-      console.log('登入成功，userRole:', user.role.trim().toLowerCase());  // debug 用
+      console.log('登入成功，userRole:', user.role);
 
-      // 根據角色自動跳到個人 Profile（已經很好，保持）
-      const rolePath = user.role.trim().toLowerCase().replace(/ /g, '-');
+      // 根據角色自動跳到個人 Profile
+      const rolePath = user.role.toLowerCase().replace(' ', '-');
       router.push(`/profile/${rolePath}`);
     }
   } catch (error) {

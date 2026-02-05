@@ -102,18 +102,24 @@ app.post('/api/projects', (req, res) => {
 
 // 4. User managerment API
 
+<<<<<<< HEAD
 // get all users list
 // app.get('/api/users', (req, res) => {
 //   const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC';
+=======
+// 獲取所有使用者列表
+app.get('/api/users', (req, res) => {
+  const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC';
+>>>>>>> b4527588d182f677d51e5b4254beb80dd695b44e
   
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       console.error('Error fetching users:', err);
-//       return res.status(500).json({ message: 'Failed to fetch users' });
-//     }
-//     res.json(results);
-//   });
-// });
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching users:', err);
+      return res.status(500).json({ message: 'Failed to fetch users' });
+    }
+    res.json(results);
+  });
+});
 
 // get current user data
 app.get('/api/users/me', (req, res) => {
@@ -153,7 +159,6 @@ app.get('/api/users/me', (req, res) => {
     res.json(results[0]);
   });
 });
-
 
 
 // Get current user's tasks (Demo用)
@@ -267,8 +272,6 @@ app.post('/api/users/change-password', (req, res) => {
       console.log('old password unmatch');
       return res.status(401).json({ message: 'current password invalid' });
     }
-
-    const trimmedNew = (newPassword || '').trim();
 
     const updateQuery = 'UPDATE users SET password = ? WHERE id = ?';
     db.query(updateQuery, [trimmedNew, userId], (err) => {
@@ -535,6 +538,79 @@ app.put('/api/tasks/:id', (req, res) => {
       success: true,
       message: 'Task updated successfully'
     });
+  });
+});
+
+
+// ==========================================
+// 👇👇👇 Lucas的 Dashboard 专用接口 (已改名) 👇👇👇
+// ==========================================
+
+// 1. 获取任务列表 (改名为 /api/fyp/tasks)
+app.get('/api/fyp/tasks', (req, res) => {
+  db.query('SELECT * FROM tasks', (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results); // 我们直接返回数组，不包在 data 里
+  });
+});
+
+// 2. 获取 Sprint 列表 (改名为 /api/fyp/sprints)
+app.get('/api/fyp/sprints', (req, res) => {
+  db.query('SELECT * FROM sprints', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// 3. 更新任务状态 (拖拽)
+app.put('/api/fyp/tasks/:id/status', (req, res) => {
+  const { status } = req.body;
+  const { id } = req.params;
+  db.query('UPDATE tasks SET status = ? WHERE id = ?', [status, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Status updated' });
+  });
+});
+
+// 4. 更新 Sprint (截止日期)
+app.put('/api/fyp/sprints/:id', (req, res) => {
+  const { deadline } = req.body;
+  const { id } = req.params;
+  db.query('UPDATE sprints SET deadline = ? WHERE id = ?', [deadline, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Sprint updated' });
+  });
+});
+
+// 5. 新增任务
+app.post('/api/fyp/tasks', (req, res) => {
+  const { name, assignee, sprint_id } = req.body;
+  const sql = 'INSERT INTO tasks (name, assignee, status, sprint_id) VALUES (?, ?, "todo", ?)';
+  db.query(sql, [name, assignee, sprint_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ id: result.insertId, message: 'Task created' });
+  });
+});
+
+// 6. 删除任务
+app.delete('/api/fyp/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM tasks WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Task deleted' });
+  });
+});
+
+// 7. 重命名任务
+app.put('/api/fyp/tasks/:id', (req, res) => {
+  const { name } = req.body;
+  const { id } = req.params;
+  db.query('UPDATE tasks SET name = ? WHERE id = ?', [name, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Task updated' });
   });
 });
 

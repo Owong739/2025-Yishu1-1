@@ -44,20 +44,13 @@ const openChangePasswordModal = () => {
   confirmPwd.value = ''
 }
 
-const closeChangePasswordModal = () => {
-  showChangePasswordModal.value = false
-}
-
-const submitChangePassword = async () => {
-  const trimmedCurrent = currentPwd.value.trim()
-  const trimmedNew = newPwd.value.trim()
-
-  if (trimmedNew !== confirmPwd.value.trim()) {
-    alert('New password do not match')
+const submitPwd = async () => {
+  if (newPwd.value !== confirmPwd.value) {
+    alert('New password do not match!')
     return
   }
 
-  if (!trimmedCurrent || !trimmedNew) {
+  if (!currentPwd.value || !newPwd.value) {
     alert('Please fill in all the field！')
     return
   }
@@ -67,14 +60,18 @@ const submitChangePassword = async () => {
       currentPassword: trimmedCurrent,
       newPassword: trimmedNew
     }, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`  // 帶 token 驗證身分
+      }
     })
-    alert('Password updated, please login again!')
-    logout()
+
+    alert('Password changed successfully! Please log in again.')
+    closePwdModal()
+    logout()  // 自動登出
   } catch (error) {
-    console.error('Password update failed:', error)
-    const errMsg = error.response?.data?.message || 'unknown error'
-    alert('Password update failed: ' + errMsg)
+    console.error('Password change failed：', error)
+    const errMsg = error.response?.data?.message || error.message || 'unknown error'
+    alert('update failed：' + errMsg)
   }
 }
 
@@ -109,7 +106,7 @@ const logout = () => {
 
     <!-- Change Password Modal -->
     <teleport to="body">
-      <div v-if="showChangePasswordModal" class="modal-overlay" @click="closeChangePasswordModal">
+      <div v-if="showPwdModal" class="modal-overlay" @click="closePwdModal">
         <div class="modal-content" @click.stop>
           <h2>Change Password</h2>
           <p class="user-info">ID: {{ userInfo?.id }}</p>
@@ -130,8 +127,8 @@ const logout = () => {
           </div>
 
           <div class="modal-actions">
-            <button class="btn-submit" @click="submitChangePassword">Submit</button>
-            <button class="btn-cancel" @click="closeChangePasswordModal">Cancel</button>
+            <button class="btn-submit" @click="submitPwd">Submit</button>
+            <button class="btn-cancel" @click="closePwdModal">Cancel</button>
           </div>
         </div>
       </div>

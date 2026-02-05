@@ -1,0 +1,224 @@
+/* 全局样式 */
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  color: #333;
+}
+
+/* 筛选区域（保留原有） */
+.filter-container {
+  display: flex;
+  gap: 20px;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.filter-group {
+  flex: 1;
+}
+.filter-group h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+.filter-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+/* 概览卡片（保留原有） */
+.overview-cards {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.overview-card {
+  flex: 1;
+  padding: 15px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  text-align: center;
+}
+.overview-card p {
+  margin: 0 0 5px;
+  font-size: 13px;
+  color: #666;
+}
+.overview-card .value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* 可视化按钮（控制饼图显示） */
+.visual-btn {
+  padding: 8px 16px;
+  background: #1890ff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+/* 饼图区域（Core Visualization Area） */
+.pie-chart-area {
+  padding: 15px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.pie-chart-area h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+.pie-chart-area .desc {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 15px;
+}
+#statusPieChart {
+  width: 100%;
+  height: 300px;
+}
+
+/* 任务看板区域 */
+.task-board-section {
+  margin-bottom: 20px;
+}
+.task-board-section h2 {
+  margin: 0 0 15px;
+  font-size: 18px;
+}
+.board-columns {
+  display: flex;
+  gap: 20px;
+}
+.board-column {
+  flex: 1;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.board-column:hover {
+  background: #e8f0fe;
+}
+.board-column h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #1890ff;
+}
+.task-card {
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.task-card p {
+  margin: 0 0 4px;
+}
+.task-card .sprint-tag {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Sprint详情页（点击To Do/In Progress后显示/隐藏） */
+.sprint-detail-page {
+  display: none;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.sprint-detail-page.active {
+  display: block;
+}
+.sprint-item {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+}
+.sprint-item:last-child {
+  border-bottom: none;
+}
+.sprint-item h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.sprint-item .time {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 8px;
+}
+.sprint-item .status {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-right: 10px;
+}
+.status-in-progress {
+  background: #fff1b8;
+  color: #d48806;
+}
+.status-completed {
+  background: #f0f9eb;
+  color: #52c41a;
+}
+
+/* Team Workload & Work Type（保留原有样式+补充进度条） */
+.stats-section {
+  display: flex;
+  gap: 20px;
+}
+.stats-card {
+  flex: 1;
+  padding: 15px;
+  background: #222;
+  color: #fff;
+  border-radius: 8px;
+}
+.stats-card h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+.stats-card .stats-desc {
+  font-size: 13px;
+  color: #ccc;
+  margin: 0 0 15px;
+}
+.workload-item {
+  margin-bottom: 10px;
+}
+.workload-item .assignee {
+  font-size: 13px;
+  margin-bottom: 5px;
+  display: block;
+}
+.progress-bar {
+  height: 10px;
+  background: #444;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #1890ff; /* 进度条颜色改为蓝色 */
+}
+.worktype-item {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.worktype-item .type {
+  font-size: 13px;
+  width: 80px;
+}

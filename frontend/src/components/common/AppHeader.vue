@@ -9,6 +9,7 @@ const userRole = ref('')
 
 // 共用導航項目（所有角色都會看到）
 const commonNavItems = [
+  
 ]
 
 // 定義每個角色的專屬導航選項
@@ -20,7 +21,7 @@ const navItemsByRole = {
     { label: 'All Sprints', path: '/admin/sprints' },
     { label: 'All Tasks', path: '/admin/tasks' },
     { label: 'All Teams', path: '/admin/teams' },
-  
+    
   ],
   'Supervisor': [
     { label: 'My Profile', path: '/profile/supervisor' },
@@ -28,14 +29,15 @@ const navItemsByRole = {
     { label: 'Manage Sprints', path: '/supervisor/sprints' },
     { label: 'Team Tasks', path: '/supervisor/team-tasks' },
     { label: 'My Teams', path: '/supervisor/teams' },
-
+   
   ],
   'Project Manager': [
     { label: 'My Profile', path: '/profile/project-manager' },
     { label: 'Current Sprint', path: '/project-manager/current-sprint' },
     { label: 'Manage Task', path: '/project-manager/taskManager' },
     { label: 'Manage Project', path: '/project-manager/ProjectManager' },
-
+    //  Lucas的 programme tracking  👇👇👇 //
+    { label: 'Programme Tracking', path: '/dashboard.html' },
   ],
   'Business Analyst': [
     { label: 'My Profile', path: '/profile/business-analyst' },
@@ -43,12 +45,14 @@ const navItemsByRole = {
     { label: 'User Stories', path: '/business-analyst/stories' },
     { label: 'Current Sprint', path: '/business-analyst/current-sprint' },
     { label: 'My Tasks', path: '/business-analyst/my-tasks' },
+   
   ],
   'Developer': [
     { label: 'My Profile', path: '/profile/developer' },
     { label: 'My Tasks', path: '/developer/my-tasks' },
     { label: 'Current Sprint', path: '/developer/current-sprint' },
     { label: 'My Team', path: '/developer/my-team' },
+    
   ],
   'Tester': [
     { label: 'My Profile', path: '/profile/tester' },
@@ -56,18 +60,21 @@ const navItemsByRole = {
     { label: 'Current Sprint Tasks', path: '/tester/current-sprint-tasks' },
     { label: 'Submit Bug', path: '/tester/bug-report' },
     { label: 'My Team', path: '/tester/my-team' },
+   
   ],
   'UAT User': [
     { label: 'My Profile', path: '/profile/uat-user' },
     { label: 'My UAT Tests', path: '/uat/my-tests' },
     { label: 'Current Sprint', path: '/uat/current-sprint' },
     { label: 'Feedback', path: '/uat/feedback' },
+    
   ],
   'Product Owner': [
     { label: 'My Profile', path: '/profile/product-owner' },
     { label: 'User Stories', path: '/product-owner/stories' },
     { label: 'Priorities', path: '/product-owner/priorities' },
     { label: 'Current Sprint', path: '/product-owner/current-sprint' },
+    
   ]
 } as const
 
@@ -114,18 +121,32 @@ onUnmounted(() => {
     <h1>Agile Dashboard</h1>
 
     <nav class="main-nav">
-      <!-- 所有角色共用的 Dashboard -->
+      <!-- 1. 所有角色共用的 Dashboard -->
       <router-link to="/main" class="nav-item">Dashboard</router-link>
 
-      <!-- 角色專屬 + 共用項目 -->
-      <router-link
-        v-for="item in navItemsByRole[userRole as keyof typeof navItemsByRole] || []"
-        :key="item.path"
-        :to="item.path"
-        class="nav-item"
-      >
-        {{ item.label }}
-      </router-link>
+      <!-- 2. 角色专属 + 共用项目 (这里加入了判断) -->
+      <!-- 使用 template 标签进行循环，不会在页面上生成多余的 div -->
+      <template v-for="item in navItemsByRole[userRole as keyof typeof navItemsByRole] || []" :key="item.path">
+        
+        <!-- 情况 A: 如果是你的静态网页 (.html)，使用普通的 a 标签 -->
+        <a 
+          v-if="item.path.includes('.html')" 
+          :href="item.path" 
+          class="nav-item"
+        >
+          {{ item.label }}
+        </a>
+
+        <!-- 情况 B: 如果是队友的普通页面，继续使用 router-link -->
+        <router-link 
+          v-else 
+          :to="item.path" 
+          class="nav-item"
+        >
+          {{ item.label }}
+        </router-link>
+
+      </template>
     </nav>
 
     <div class="user-info">

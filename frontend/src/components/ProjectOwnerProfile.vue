@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+// 個人資料
 const userInfo = ref(null)
 
 // Change Password Modal
@@ -18,11 +19,11 @@ const passwordForm = ref({ currentPassword: '', newPassword: '', confirmPassword
 // My Tasks
 const tasks = ref([])
 
-// My Teams & My Sprints implement later
+// My Teams & My Sprints（保留變數，但暫時不載入資料）
 const teams = ref([])
 const sprints = ref([])
 
-// Load personal data from db（change to Complete URL to reduce proxy problem）
+// 載入個人資料從 DB
 const loadUserInfo = async () => {
   try {
     const response = await axios.get('/api/users/me', {
@@ -37,7 +38,7 @@ const loadUserInfo = async () => {
   }
 }
 
-// Load My Tasks data from db（change to Complete URL to reduce proxy problem）
+// 載入 My Tasks（從 DB）
 const loadTasks = async () => {
   try {
     const response = await axios.get('/api/tasks/my', {
@@ -65,20 +66,13 @@ const openChangePasswordModal = () => {
 const closeChangePasswordModal = () => showChangePasswordModal.value = false
 
 const submitChangePassword = async () => {
-  // Use trimm to reduce space
-  const trimmedCurrent = passwordForm.value.currentPassword.trim()
-  const trimmedNew = passwordForm.value.newPassword.trim()
-
-  if (trimmedNew !== passwordForm.value.confirmPassword.trim()) {
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
     alert('New password do not match')
     return
   }
 
   try {
-    await axios.post('http://localhost:3000/api/users/change-password', {
-      currentPassword: trimmedCurrent,
-      newPassword: trimmedNew
-    }, {
+    await axios.post('/api/users/change-password', passwordForm.value, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     alert('Password updated, please login again!')
@@ -88,6 +82,26 @@ const submitChangePassword = async () => {
   }
 }
 
+// Edit Profile
+// const openEditModal = () => {
+//   showEditModal.value = true
+// }
+// const closeEditModal = () => showEditModal.value = false
+
+// const submitEdit = async () => {
+//   try {
+//     await axios.patch('/api/users/me', editForm.value, {
+//       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+//     })
+//     alert('update succesfully')
+//     loadUserInfo()  // 重新載入
+//     closeEditModal()
+//   } catch (error) {
+//     alert('update failed: ' + (error.response?.data?.message || '錯誤'))
+//   }
+// }
+
+// 登出
 const logout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userRole')
@@ -97,7 +111,7 @@ const logout = () => {
 
 <template>
   <div class="profile-page">
-    <h1>Business Analyst Profile</h1>
+    <h1>Product Owner Profile</h1>
 
     <!-- My Profile -->
     <div class="section">

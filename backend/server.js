@@ -102,24 +102,18 @@ app.post('/api/projects', (req, res) => {
 
 // 4. User managerment API
 
-<<<<<<< HEAD
-// get all users list
+//get all users list
 // app.get('/api/users', (req, res) => {
 //   const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC';
-=======
-// 獲取所有使用者列表
-app.get('/api/users', (req, res) => {
-  const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC';
->>>>>>> b4527588d182f677d51e5b4254beb80dd695b44e
   
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('Error fetching users:', err);
-      return res.status(500).json({ message: 'Failed to fetch users' });
-    }
-    res.json(results);
-  });
-});
+//   db.query(query, (err, results) => {
+//     if (err) {
+//       console.error('Error fetching users:', err);
+//       return res.status(500).json({ message: 'Failed to fetch users' });
+//     }
+//     res.json(results);
+//   });
+// });
 
 // get current user data
 app.get('/api/users/me', (req, res) => {
@@ -131,7 +125,7 @@ app.get('/api/users/me', (req, res) => {
     return res.status(401).json({ message: 'No token provided' });
   }
 
-  // Get userId from dummy token
+  // 從臨時 token 取出 userId（格式：dummy-token-5 → 5）
   if (!token.startsWith('dummy-token-')) {
     console.log('Invalid token format:', token);
     return res.status(403).json({ message: 'Invalid token format' });
@@ -139,23 +133,23 @@ app.get('/api/users/me', (req, res) => {
 
   const userId = token.split('-')[2];
   if (!userId || isNaN(userId)) {
-    console.log('cannot explain userId 從 token:', token);
+    console.log('無法解析 userId 從 token:', token);
     return res.status(403).json({ message: 'Invalid token' });
   }
 
   const query = 'SELECT id, name, email, role FROM users WHERE id = ?';
   db.query(query, [userId], (err, results) => {
     if (err) {
-      console.error('query personal info fail:', err);
-      return res.status(500).json({ message: 'query fail' });
+      console.error('查詢個人資料錯誤:', err);
+      return res.status(500).json({ message: '查詢失敗' });
     }
 
     if (results.length === 0) {
-      console.log('cannot find user Id:', userId);
+      console.log('找不到使用者 ID:', userId);
       return res.status(404).json({ message: 'User not found' });
     }
 
-    console.log('personal info load successful, ID:', userId, results[0]);
+    console.log('個人資料載入成功 ID:', userId, results[0]);
     res.json(results[0]);
   });
 });

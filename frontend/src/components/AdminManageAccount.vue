@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
-// User List
+// 使用者列表
 const users = ref([])
 const isLoading = ref(true)
 const errorMsg = ref('')
@@ -11,10 +11,10 @@ const loadUsers = async () => {
   isLoading.value = true
   errorMsg.value = ''
   try {
-    const res = await axios.get('/api/users', {
+    const res = await axios.get('http://localhost:3000/api/users', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
     })
-    users.value = res.data || []
+    users.value = res.data.data || [] 
   } catch (err) {
     console.error('Fail to load user data', err)
     errorMsg.value = 'Cannot load user data'
@@ -25,7 +25,7 @@ const loadUsers = async () => {
 
 onMounted(loadUsers)
 
-// search function
+// 搜尋
 const searchTerm = ref('')
 const filteredUsers = computed(() => {
   if (!searchTerm.value) return users.value
@@ -44,7 +44,7 @@ const createForm = ref({ name: '', email: '', password: '', role: 'Developer' })
 const roles = [
   'Supervisor',
   'Admin',
-  'Product Manager',
+  'Project Manager',
   'Business Analyst',
   'Developer',
   'Tester',
@@ -67,7 +67,7 @@ const submitCreate = async () => {
   }
 
   try {
-    await axios.post('http://localhost:3000/api/users', createForm.value, {  //  change to complete URL
+    await axios.post('http://localhost:3000/api/users', createForm.value, {  // ← 改完整 URL
       headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
     })
     alert('create successful！')
@@ -85,7 +85,7 @@ const saveEdit = async () => {
   if (!editUser.value) return
 
   try {
-    await axios.patch(`http://localhost:3000/api/users/${editUser.value.id}`, {
+    await axios.patch(`http://localhost:3000/api/users/${editUser.value.id}`, {  // ← 改完整 URL
       name: editUser.value.name,
       email: editUser.value.email,
       role: editUser.value.role
@@ -105,7 +105,7 @@ const confirmDelete = async () => {
   if (!userToDelete.value) return
 
   try {
-    await axios.delete(`http://localhost:3000/api/users/${userToDelete.value.id}`, {
+    await axios.delete(`http://localhost:3000/api/users/${userToDelete.value.id}`, {  // ← 改完整 URL
       headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
     })
     alert('delete sucessful！')

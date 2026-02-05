@@ -4,10 +4,7 @@
     <header class="header">
       <div class="title-wrapper">
         <h1>Task Manager</h1>
-        <!-- Only Project Manager can see and click "Create New Task" -->
         <button
-          v-if="isProjectManager"
-          @click="openCreateModal"
           class="create-header-btn"
         >
           + Create New Task

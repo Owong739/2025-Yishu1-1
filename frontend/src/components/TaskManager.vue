@@ -4,7 +4,8 @@
     <header class="header">
       <div class="title-wrapper">
         <h1>Task Manager</h1>
-        <button
+        <button       
+          @click="openCreateModal"
           class="create-header-btn"
         >
           + Create New Task
@@ -150,7 +151,6 @@
             </div>
 
             <div class="form-actions">
-            
               <button
                 type="submit"
                 class="save-btn"
@@ -255,7 +255,7 @@
             </div>
 
             <div class="modal-actions">
-              <!-- Assuming create also restricted to Project Manager -->
+              <!-- Assuming create also restricted to Product Manager -->
               <button type="submit" class="confirm-btn">Create Task</button>
             </div>
           </form>
@@ -273,7 +273,6 @@ import axios from 'axios';
 const router = useRouter();
 
 const userRole = ref<string>('');
-const isProjectManager = computed(() => userRole.value === 'Project Manager');
 
 const projects = ref<{ id: number; name: string; sprint_count: number }[]>([]);
 const selectedProject = ref<string | null>(null);

@@ -1,11 +1,8 @@
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
-import { useRouter } from 'vue-router'  // 如果 logout 要用 router
+import axios from 'axios'  // ← 加這行！解決 axios is not defined
 
-const router = useRouter()  // 如果用 router.push
-
-// Supervisor Profile Data（目前硬碼）
+// Supervisor Profile Data（目前是硬碼，之後可改成從 API 載入）
 const profile = ref({
   id: 's111',
   username: 'John',
@@ -15,59 +12,55 @@ const profile = ref({
 })
 
 // Change Password Modal
-const showChangePasswordModal = ref(false)  // 統一變數名
+const showPwdModal = ref(false)
 const currentPwd = ref('')
 const newPwd = ref('')
 const confirmPwd = ref('')
 
-// Change Password
-const openChangePasswordModal = () => {
-  showChangePasswordModal.value = true
-  currentPwd.value = ''
-  newPwd.value = ''
-  confirmPwd.value = ''
+const openPwdModal = () => { showPwdModal.value = true }
+const closePwdModal = () => {
+  showPwdModal.value = false
+  currentPwd.value = newPwd.value = confirmPwd.value = ''
 }
 
-const closeChangePasswordModal = () => {
-  showChangePasswordModal.value = false
-}
-
-const submitChangePassword = async () => {
-  const trimmedCurrent = currentPwd.value.trim()
-  const trimmedNew = newPwd.value.trim()
-
-  if (trimmedNew !== confirmPwd.value.trim()) {
-    alert('New password do not match')
+const submitPwd = async () => {
+  if (newPwd.value !== confirmPwd.value) {
+    alert('New password do not match!')
     return
   }
 
-  if (!trimmedCurrent || !trimmedNew) {
+  if (!currentPwd.value || !newPwd.value) {
     alert('Please fill in all the field！')
     return
   }
 
   try {
-    await axios.post('http://localhost:3000/api/users/change-password', {  // 完整 URL
-      currentPassword: trimmedCurrent,
-      newPassword: trimmedNew
+    console.log('Send password change request：', { currentPassword: currentPwd.value, newPassword: newPwd.value })
+
+    const response = await axios.post('/api/users/change-password', {
+      currentPassword: currentPwd.value,
+      newPassword: newPwd.value
     }, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`  // 帶 token 驗證身分
+      }
     })
-    alert('Password updated, please login again!')
-    logout()
+
+    alert('Password changed successfully! Please log in again.')
+    closePwdModal()
+    logout()  // 自動登出
   } catch (error) {
-    console.error('Password update failed:', error)
-    const errMsg = error.response?.data?.message || 'unknown error'
-    alert('Password update failed: ' + errMsg)
+    console.error('Password change failed：', error)
+    const errMsg = error.response?.data?.message || error.message || 'unknown error'
+    alert('update failed：' + errMsg)
   }
 }
 
-// 登出
 const logout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userRole')
   localStorage.removeItem('user')
-  location.href = '/'  // 或 router.push('/') 如果用 router
+  location.href = '/'  // 跳回登入頁
 }
 
 // Edit User Modal
@@ -105,13 +98,14 @@ const logout = () => {
         <p><strong>Role:</strong> {{ profile.role }}</p>
       </div>
       <div class="buttons">
-        <button class="btn-secondary" @click="openChangePasswordModal">Change Password</button>  <!-- 改成正確函式名 -->
+        <button class="btn-secondary" @click="openPwdModal">Change Password</button>
+        <!-- <button class="btn-primary" @click="openEditModal">Edit</button> -->
       </div>
     </div>
 
     <!-- Change Password Modal -->
     <teleport to="body">
-      <div v-if="showChangePasswordModal" class="modal-overlay" @click="closeChangePasswordModal">
+      <div v-if="showPwdModal" class="modal-overlay" @click="closePwdModal">
         <div class="modal-content" @click.stop>
           <h2>Change Password</h2>
           <p class="user-info">ID: s111</p>
@@ -132,8 +126,8 @@ const logout = () => {
           </div>
 
           <div class="modal-actions">
-            <button class="btn-submit" @click="submitChangePassword">Submit</button>
-            <button class="btn-cancel" @click="closeChangePasswordModal">Cancel</button>
+            <button class="btn-submit" @click="submitPwd">Submit</button>
+            <button class="btn-cancel" @click="closePwdModal">Cancel</button>
           </div>
         </div>
       </div>
@@ -166,10 +160,10 @@ const logout = () => {
 
           <div class="modal-actions">
             <button class="btn-submit" @click="saveEdit">Save</button>
-             <button class="btn-cancel" @click="closeEditModal">Cancel</button> -->
+            <!-- <button class="btn-cancel" @click="closeEditModal">Cancel</button> -->
           <!-- </div>
         </div>
-      </div> --> 
+      </div> --> -->
     </teleport>
   </div>
 </template>

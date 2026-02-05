@@ -104,17 +104,17 @@ app.post('/api/projects', (req, res) => {
 // 4. 使用者管理 API
 
 // 獲取所有使用者列表
-// app.get('/api/users', (req, res) => {
-//   const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC';
+app.get('/api/users', (req, res) => {
+  const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC';
   
-//   db.query(query, (err, results) => {
-//     if (err) {
-//       console.error('Error fetching users:', err);
-//       return res.status(500).json({ message: 'Failed to fetch users' });
-//     }
-//     res.json(results);
-//   });
-// });
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching users:', err);
+      return res.status(500).json({ message: 'Failed to fetch users' });
+    }
+    res.json(results);
+  });
+});
 
 // get current user data
 app.get('/api/users/me', (req, res) => {
@@ -154,7 +154,6 @@ app.get('/api/users/me', (req, res) => {
     res.json(results[0]);
   });
 });
-
 
 
 // Get current user's tasks (Demo用)
@@ -230,18 +229,10 @@ app.post('/api/users', (req, res) => {
 
 // Modify current user password
 app.post('/api/users/change-password', (req, res) => {
-  console.log('Change Password 請求收到');  // ← 加 log 確認請求到達
-
-  const token = 
-  req.headers.authorization?.split(' ')[1];
-  console.log('Token:', token);  // ← 加 log
-
+  const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'No token provided' });
 
   const { currentPassword, newPassword } = req.body;
-  console.log('Received currentPassword:', currentPassword);  // ← 加 log
-  console.log('Received newPassword:', newPassword);  // ← 加 log
-
   if (!currentPassword || !newPassword) return res.status(400).json({ message: '請填寫所有欄位' });
 
   // 從 token 取出 userId
@@ -251,33 +242,16 @@ app.post('/api/users/change-password', (req, res) => {
 
   const checkQuery = 'SELECT password FROM users WHERE id = ?';
   db.query(checkQuery, [userId], (err, results) => {
-    if (err) {
-      console.error('查詢舊密碼錯誤:', err);
-      return res.status(500).json({ message: '查詢失敗' });
-    }
+    if (err) return res.status(500).json({ message: '查詢失敗' });
     if (results.length === 0) return res.status(404).json({ message: 'User not found' });
 
-    // 加 trim 避免空格問題
-    const dbPassword = (results[0].password || '').trim();
-    const inputCurrent = (currentPassword || '').trim();
-
-    console.log('DB password (trimmed):', dbPassword);  // ← 加 log
-    console.log('Input current (trimmed):', inputCurrent);  // ← 加 log
-
-    if (dbPassword !== inputCurrent) {
-      console.log('舊密碼不匹配');
+    if (results[0].password !== currentPassword) {
       return res.status(401).json({ message: '當前密碼錯誤' });
     }
 
-    const trimmedNew = (newPassword || '').trim();
-
     const updateQuery = 'UPDATE users SET password = ? WHERE id = ?';
-    db.query(updateQuery, [trimmedNew, userId], (err) => {
-      if (err) {
-        console.error('更新密碼錯誤:', err);
-        return res.status(500).json({ message: '更新失敗' });
-      }
-      console.log('密碼更新成功，userId:', userId);
+    db.query(updateQuery, [newPassword, userId], (err) => {
+      if (err) return res.status(500).json({ message: '更新失敗' });
       res.json({ message: '密碼更新成功' });
     });
   });
@@ -536,6 +510,79 @@ app.put('/api/tasks/:id', (req, res) => {
       success: true,
       message: 'Task updated successfully'
     });
+  });
+});
+
+
+// ==========================================
+// 👇👇👇 Lucas的 Dashboard 专用接口 (已改名) 👇👇👇
+// ==========================================
+
+// 1. 获取任务列表 (改名为 /api/fyp/tasks)
+app.get('/api/fyp/tasks', (req, res) => {
+  db.query('SELECT * FROM tasks', (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results); // 我们直接返回数组，不包在 data 里
+  });
+});
+
+// 2. 获取 Sprint 列表 (改名为 /api/fyp/sprints)
+app.get('/api/fyp/sprints', (req, res) => {
+  db.query('SELECT * FROM sprints', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// 3. 更新任务状态 (拖拽)
+app.put('/api/fyp/tasks/:id/status', (req, res) => {
+  const { status } = req.body;
+  const { id } = req.params;
+  db.query('UPDATE tasks SET status = ? WHERE id = ?', [status, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Status updated' });
+  });
+});
+
+// 4. 更新 Sprint (截止日期)
+app.put('/api/fyp/sprints/:id', (req, res) => {
+  const { deadline } = req.body;
+  const { id } = req.params;
+  db.query('UPDATE sprints SET deadline = ? WHERE id = ?', [deadline, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Sprint updated' });
+  });
+});
+
+// 5. 新增任务
+app.post('/api/fyp/tasks', (req, res) => {
+  const { name, assignee, sprint_id } = req.body;
+  const sql = 'INSERT INTO tasks (name, assignee, status, sprint_id) VALUES (?, ?, "todo", ?)';
+  db.query(sql, [name, assignee, sprint_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ id: result.insertId, message: 'Task created' });
+  });
+});
+
+// 6. 删除任务
+app.delete('/api/fyp/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM tasks WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Task deleted' });
+  });
+});
+
+// 7. 重命名任务
+app.put('/api/fyp/tasks/:id', (req, res) => {
+  const { name } = req.body;
+  const { id } = req.params;
+  db.query('UPDATE tasks SET name = ? WHERE id = ?', [name, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Task updated' });
   });
 });
 

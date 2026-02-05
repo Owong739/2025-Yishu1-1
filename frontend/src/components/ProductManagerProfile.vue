@@ -93,7 +93,7 @@ const submitChangePassword = async () => {
 //     await axios.patch('/api/users/me', editForm.value, {
 //       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
 //     })
-//     alert('update successfully!')
+//     alert('update succesfully')
 //     loadUserInfo()  // 重新載入
 //     closeEditModal()
 //   } catch (error) {
@@ -111,7 +111,7 @@ const logout = () => {
 
 <template>
   <div class="profile-page">
-    <h1>Business Analyst Profile</h1>
+    <h1>Product Manager Profile</h1>
 
     <!-- My Profile -->
     <div class="section">

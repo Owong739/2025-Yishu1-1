@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// --- MySQL 連接設定 ---
+// MySQL connection setting
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -29,7 +29,7 @@ db.connect(err => {
 
 // --- API Routes ---
 
-// 1. 登入 API
+// 1. Login API
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     
@@ -52,7 +52,7 @@ app.post('/api/login', (req, res) => {
 });
 
 
-// 獲取所有用戶列表 (用於 Dropdown)
+// Get all users list (For Dropdown)
 app.get('/api/users', (req, res) => {
     const query = 'SELECT id, name, role FROM users';
     db.query(query, (err, results) => {
@@ -61,7 +61,7 @@ app.get('/api/users', (req, res) => {
     });
 });
 
-// 2. 獲取專案列表 API
+// 2. Get project list API
 app.get('/api/projects', (req, res) => {
     const query = 'SELECT * FROM projects ORDER BY created_at DESC';
     
@@ -73,20 +73,19 @@ app.get('/api/projects', (req, res) => {
 
 // Create Project API
 app.post('/api/projects', (req, res) => {
-    // 接收新欄位: startDate, endDate, sprintCount, projectManager
+    // Recevie new row: startDate, endDate, sprintCount, projectManager
     const { name, description, startDate, endDate, sprintCount, projectManager } = req.body;
     
-    // 更新 SQL 語句
     const query = 'INSERT INTO projects (name, description, status, start_date, end_date, sprint_count, project_manager) VALUES (?, ?, ?, ?, ?, ?, ?)';
     
-    // 執行插入
+    // execute insert
     db.query(query, [name, description, 'To Do', startDate, endDate, sprintCount, projectManager], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         
         res.json({ 
             success: true, 
             message: 'Project created', 
-            // 回傳完整的專案物件以便前端即時更新
+            // redirect project object and update
             project: { 
                 id: result.insertId, 
                 name, 
@@ -101,9 +100,9 @@ app.post('/api/projects', (req, res) => {
     });
 });
 
-// 4. 使用者管理 API
+// 4. User managerment API
 
-// 獲取所有使用者列表
+// get all users list
 // app.get('/api/users', (req, res) => {
 //   const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC';
   
@@ -126,7 +125,7 @@ app.get('/api/users/me', (req, res) => {
     return res.status(401).json({ message: 'No token provided' });
   }
 
-  // 從臨時 token 取出 userId（格式：dummy-token-5 → 5）
+  // Get userId from dummy token
   if (!token.startsWith('dummy-token-')) {
     console.log('Invalid token format:', token);
     return res.status(403).json({ message: 'Invalid token format' });
@@ -134,23 +133,23 @@ app.get('/api/users/me', (req, res) => {
 
   const userId = token.split('-')[2];
   if (!userId || isNaN(userId)) {
-    console.log('無法解析 userId 從 token:', token);
+    console.log('cannot explain userId 從 token:', token);
     return res.status(403).json({ message: 'Invalid token' });
   }
 
   const query = 'SELECT id, name, email, role FROM users WHERE id = ?';
   db.query(query, [userId], (err, results) => {
     if (err) {
-      console.error('查詢個人資料錯誤:', err);
-      return res.status(500).json({ message: '查詢失敗' });
+      console.error('query personal info fail:', err);
+      return res.status(500).json({ message: 'query fail' });
     }
 
     if (results.length === 0) {
-      console.log('找不到使用者 ID:', userId);
+      console.log('cannot find user Id:', userId);
       return res.status(404).json({ message: 'User not found' });
     }
 
-    console.log('個人資料載入成功 ID:', userId, results[0]);
+    console.log('personal info load successful, ID:', userId, results[0]);
     res.json(results[0]);
   });
 });
@@ -162,31 +161,31 @@ app.get('/api/tasks/my', (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'No token provided' });
 
-  // 從 token 取出 userId
+  // Get userId from token
   if (!token.startsWith('dummy-token-')) return res.status(403).json({ message: 'Invalid token format' });
   const userId = token.split('-')[2];
   if (!userId || isNaN(userId)) return res.status(403).json({ message: 'Invalid token' });
 
-  // 先查出該使用者的 name
+  // Query user name first
   const nameQuery = 'SELECT name FROM users WHERE id = ?';
   db.query(nameQuery, [userId], (err, nameResults) => {
-    if (err) return res.status(500).json({ message: '查詢使用者名稱失敗' });
+    if (err) return res.status(500).json({ message: 'query user name fail' });
     if (nameResults.length === 0) return res.status(404).json({ message: 'User not found' });
 
     const userName = nameResults[0].name;
 
-    // 用 name 查詢任務
+    // User name to query task
     const taskQuery = 'SELECT * FROM task_manager WHERE assignee = ?';
     db.query(taskQuery, [userName], (err, results) => {
-      if (err) return res.status(500).json({ message: '查詢任務失敗' });
+      if (err) return res.status(500).json({ message: 'query task fail' });
       res.json(results);
     });
   });
 });
 
-// 建立新使用者 (Admin 用)
+// Create New User (For Admin)
 app.post('/api/users', (req, res) => {
-  console.log('收到 /api/users POST:', req.body);
+  console.log('received /api/users POST:', req.body);
 
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
@@ -196,7 +195,7 @@ app.post('/api/users', (req, res) => {
   const { name, email, password, role } = req.body;
 
   if (!name || !email || !password || !role) {
-    return res.status(400).json({ message: '請填寫所有欄位' });
+    return res.status(400).json({ message: 'please fill in all fields' });
   }
 
   const normalizedEmail = email.trim().toLowerCase();
@@ -204,25 +203,25 @@ app.post('/api/users', (req, res) => {
   const checkQuery = 'SELECT * FROM users WHERE LOWER(TRIM(email)) = ?';
   db.query(checkQuery, [normalizedEmail], (err, results) => {
     if (err) {
-      console.error('查詢錯誤:', err);
-      return res.status(500).json({ message: '查詢失敗' });
+      console.error('query fail:', err);
+      return res.status(500).json({ message: 'query fail' });
     }
 
-    console.log('查詢結果 - 重複數:', results.length, 'Email:', normalizedEmail);
+    console.log('query result - duplicate:', results.length, 'Email:', normalizedEmail);
 
     if (results.length > 0) {
-      console.log('發現重複 Email:', results[0].email);
+      console.log('Duplicate Email:', results[0].email);
       return res.status(409).json({ message: 'Email already exists' });
     }
 
     const insertQuery = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
     db.query(insertQuery, [name, normalizedEmail, password, role], (err, result) => {
       if (err) {
-        console.error('插入錯誤:', err);
-        return res.status(500).json({ message: '建立失敗' });
+        console.error('Insert error:', err);
+        return res.status(500).json({ message: 'create fail' });
       }
 
-      console.log('建立成功，ID:', result.insertId);
+      console.log('create successful，ID:', result.insertId);
       res.status(201).json({ message: 'User created successfully' });
     });
   });
@@ -230,21 +229,21 @@ app.post('/api/users', (req, res) => {
 
 // Modify current user password
 app.post('/api/users/change-password', (req, res) => {
-  console.log('Change Password 請求收到');  // ← 加 log 確認請求到達
+  console.log('Change Password request received');
 
   const token = 
   req.headers.authorization?.split(' ')[1];
-  console.log('Token:', token);  // ← 加 log
+  console.log('Token:', token);
 
   if (!token) return res.status(401).json({ message: 'No token provided' });
 
   const { currentPassword, newPassword } = req.body;
-  console.log('Received currentPassword:', currentPassword);  // ← 加 log
-  console.log('Received newPassword:', newPassword);  // ← 加 log
+  console.log('Received currentPassword:', currentPassword);
+  console.log('Received newPassword:', newPassword);
 
-  if (!currentPassword || !newPassword) return res.status(400).json({ message: '請填寫所有欄位' });
+  if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Please fill in all the field' });
 
-  // 從 token 取出 userId
+  // Get userId from token
   if (!token.startsWith('dummy-token-')) return res.status(403).json({ message: 'Invalid token format' });
   const userId = token.split('-')[2];
   if (!userId || isNaN(userId)) return res.status(403).json({ message: 'Invalid token' });
@@ -252,21 +251,21 @@ app.post('/api/users/change-password', (req, res) => {
   const checkQuery = 'SELECT password FROM users WHERE id = ?';
   db.query(checkQuery, [userId], (err, results) => {
     if (err) {
-      console.error('查詢舊密碼錯誤:', err);
-      return res.status(500).json({ message: '查詢失敗' });
+      console.error('query old password fail:', err);
+      return res.status(500).json({ message: 'query fail' });
     }
     if (results.length === 0) return res.status(404).json({ message: 'User not found' });
 
-    // 加 trim 避免空格問題
+    // Use trim to reduce space issue
     const dbPassword = (results[0].password || '').trim();
     const inputCurrent = (currentPassword || '').trim();
 
-    console.log('DB password (trimmed):', dbPassword);  // ← 加 log
-    console.log('Input current (trimmed):', inputCurrent);  // ← 加 log
+    console.log('DB password (trimmed):', dbPassword);
+    console.log('Input current (trimmed):', inputCurrent);
 
     if (dbPassword !== inputCurrent) {
-      console.log('舊密碼不匹配');
-      return res.status(401).json({ message: '當前密碼錯誤' });
+      console.log('old password unmatch');
+      return res.status(401).json({ message: 'current password invalid' });
     }
 
     const trimmedNew = (newPassword || '').trim();
@@ -274,16 +273,16 @@ app.post('/api/users/change-password', (req, res) => {
     const updateQuery = 'UPDATE users SET password = ? WHERE id = ?';
     db.query(updateQuery, [trimmedNew, userId], (err) => {
       if (err) {
-        console.error('更新密碼錯誤:', err);
-        return res.status(500).json({ message: '更新失敗' });
+        console.error('update password fail:', err);
+        return res.status(500).json({ message: 'update fail' });
       }
-      console.log('密碼更新成功，userId:', userId);
-      res.json({ message: '密碼更新成功' });
+      console.log('update password successful，userId:', userId);
+      res.json({ message: 'update password successful' });
     });
   });
 });
 
-// 更新使用者
+// Update user
 app.patch('/api/users/:id', (req, res) => {
   const { id } = req.params;
   const { name, email, role } = req.body;
@@ -355,7 +354,7 @@ app.patch('/api/users/me', (req, res) => {
   });
 });
 
-// 刪除單個使用者
+// Delete single user
 app.delete('/api/users/:id', (req, res) => {
   const { id } = req.params;
 
@@ -369,37 +368,37 @@ app.delete('/api/users/:id', (req, res) => {
   });
 });
 
-// 註冊新用戶 API（保留給一般註冊用）
+// register new user API（for normal register use）
 app.post('/api/register', (req, res) => {
-  console.log('收到註冊請求:', req.body);
+  console.log('received register request:', req.body);
 
   const { name, email, password, role } = req.body;
 
   if (!name || !email || !password || !role) {
-    return res.status(400).json({ success: false, message: '請填寫所有欄位' });
+    return res.status(400).json({ success: false, message: 'please fill in all fields' });
   }
 
   const normalizedEmail = email.trim().toLowerCase();
   const checkQuery = 'SELECT * FROM users WHERE LOWER(TRIM(email)) = ?';
   db.query(checkQuery, [normalizedEmail], (err, results) => {
     if (err) {
-      console.error('查詢錯誤:', err);
-      return res.status(500).json({ success: false, message: '查詢失敗' });
+      console.error('query error:', err);
+      return res.status(500).json({ success: false, message: 'query fail' });
     }
 
     if (results.length > 0) {
-      console.log('發現重複 Email:', results[0].email);
+      console.log('Duplicate Email:', results[0].email);
       return res.status(409).json({ success: false, message: 'Email already exists' });
     }
 
     const insertQuery = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
     db.query(insertQuery, [name, normalizedEmail, password, role], (err, result) => {
       if (err) {
-        console.error('插入錯誤:', err);
-        return res.status(500).json({ success: false, message: '建立失敗' });
+        console.error('Insert error:', err);
+        return res.status(500).json({ success: false, message: 'create fail' });
       }
 
-      console.log('註冊成功，ID:', result.insertId);
+      console.log('register successful，ID:', result.insertId);
       res.json({ success: true, message: 'User registered successfully' });
     });
   });
@@ -412,7 +411,7 @@ app.get('/api/users', (req, res) => {
   const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY name ASC';
   db.query(query, (err, results) => {
     if (err) {
-      console.error('查詢使用者錯誤:', err);
+      console.error('query user fail:', err);
       return res.status(500).json({ success: false, error: err.message });
     }
     res.json({
@@ -437,7 +436,7 @@ app.get('/api/tasks', (req, res) => {
 
   db.query(query, params, (err, results) => {
     if (err) {
-      console.error('查詢任務錯誤:', err);
+      console.error('query task fail:', err);
       return res.status(500).json({ success: false, error: err.message });
     }
     res.json({
@@ -528,8 +527,8 @@ app.put('/api/tasks/:id', (req, res) => {
     taskId
   ], (err, result) => {
     if (err) {
-      console.error('更新任務錯誤:', err);
-      return res.status(500).json({ success: false, error: '更新任務失敗: ' + err.message });
+      console.error('update task fail:', err);
+      return res.status(500).json({ success: false, error: 'update task fail: ' + err.message });
     }
 
     res.json({

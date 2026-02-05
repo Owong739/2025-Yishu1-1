@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-// 目前使用者資料（從 API 載入）
+// Loading user data from API
 const profile = ref({
   id: null,
   name: '',
@@ -11,10 +11,9 @@ const profile = ref({
   created_at: ''
 })
 
-// 載入當前使用者資料（從後端 API）
 const loadProfile = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/users/me', {  // ← 改成完整 URL
+    const response = await axios.get('http://localhost:3000/api/users/me', {  // ← Change to complete URL
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
       }
@@ -26,12 +25,12 @@ const loadProfile = async () => {
   }
 }
 
-// 頁面載入時自動取得資料
+// Get the user data while loading
 onMounted(() => {
   loadProfile()
 })
 
-// Change Password Modal（真正連後端）
+// Change Password Modal
 const showPwdModal = ref(false)
 const currentPwd = ref('')
 const newPwd = ref('')
@@ -59,8 +58,8 @@ const submitPwd = async () => {
 
   try {
     const response = await axios.post('http://localhost:3000/api/users/change-password', {
-      currentPassword: trimmedCurrent,  // ← 用 trimmed
-      newPassword: trimmedNew           // ← 用 trimmed
+      currentPassword: trimmedCurrent,  //  Use trimmed to reduce space when it exist
+      newPassword: trimmedNew           
     }, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -77,15 +76,15 @@ const submitPwd = async () => {
   }
 }
 
-// 登出函式（改密碼成功後呼叫）
+// Logout (Call After changed password)
 const logout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userRole')
   localStorage.removeItem('user')
-  location.href = '/'  // 跳回登入頁
+  location.href = '/'  // redirect to login page
 }
 
-// Edit Profile Modal（保持原樣）
+// Edit Profile Modal）
 // const showEditModal = ref(false)
 // const editForm = ref({ ...profile.value })
 
@@ -131,7 +130,7 @@ const logout = () => {
       </div>
     </div>
 
-    <!-- Modals（保持原樣） -->
+    <!-- Modal -->
     <teleport to="body">
       <!-- Change Password Modal -->
       <div v-if="showPwdModal" class="modal-overlay" @click="closePwdModal">

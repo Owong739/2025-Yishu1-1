@@ -5,7 +5,6 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// 個人資料
 const userInfo = ref(null)
 
 // Change Password Modal
@@ -19,17 +18,17 @@ const passwordForm = ref({ currentPassword: '', newPassword: '', confirmPassword
 // My Tasks
 const tasks = ref([])
 
-// My Teams & My Sprints（保留變數，但暫時不載入資料）
+// My Teams & My Sprints（implement late）
 const teams = ref([])
 const sprints = ref([])
 
-// 載入個人資料從 DB（完整 URL）
+// Load personal data from db（change to Complete URL to reduce proxy problem）
 const loadUserInfo = async () => {
   try {
     const response = await axios.get('http://localhost:3000/api/users/me', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
-    console.log('Profile data loaded:', response.data)  // debug 用，看控制台
+    console.log('Profile data loaded:', response.data)
     userInfo.value = response.data
   } catch (error) {
     console.error('Fail to load profile data:', error)
@@ -38,24 +37,24 @@ const loadUserInfo = async () => {
   }
 }
 
-// 載入 My Tasks（從 DB）（完整 URL）
+// Load My Tasks data from db
 const loadTasks = async () => {
   try {
     const response = await axios.get('http://localhost:3000/api/tasks/my', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
-    console.log('Tasks data loaded:', response.data)  // debug 用
+    console.log('Tasks data loaded:', response.data)
     tasks.value = response.data
   } catch (error) {
     console.error('Load tasks fail:', error)
-    // 不 alert，讓頁面顯示 "No tasks"
+    // display No tasks
   }
 }
 
 onMounted(async () => {
   await loadUserInfo()
   await loadTasks()
-  isLoading.value = false  // 載入完成
+  isLoading.value = false
 })
 
 // Change Password
@@ -106,14 +105,13 @@ const submitChangePassword = async () => {
 //       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
 //     })
 //     alert('update succesfully')
-//     loadUserInfo()  // 重新載入
+//     loadUserInfo()
 //     closeEditModal()
 //   } catch (error) {
 //     alert('update failed: ' + (error.response?.data?.message || 'error'))
 //   }
 // }
 
-// 登出
 const logout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userRole')
@@ -125,7 +123,7 @@ const logout = () => {
   <div class="profile-page">
     <h1>Project Manager Profile</h1>
 
-    <!-- Loading 狀態 -->
+    <!-- Loading -->
     <div v-if="isLoading" class="loading">Loading profile and tasks...</div>
 
     <div v-else>

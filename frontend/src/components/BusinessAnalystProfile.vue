@@ -5,7 +5,6 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// 個人資料
 const userInfo = ref(null)
 
 // Change Password Modal
@@ -15,11 +14,11 @@ const passwordForm = ref({ currentPassword: '', newPassword: '', confirmPassword
 // My Tasks
 const tasks = ref([])
 
-// My Teams & My Sprints（保留變數，但暫時不載入資料）
+// My Teams & My Sprints implement later
 const teams = ref([])
 const sprints = ref([])
 
-// 載入個人資料從 DB（改成完整 URL，避開 proxy 問題）
+// Load personal data from db（change to Complete URL to reduce proxy problem）
 const loadUserInfo = async () => {
   try {
     const response = await axios.get('http://localhost:3000/api/users/me', {
@@ -33,7 +32,7 @@ const loadUserInfo = async () => {
   }
 }
 
-// 載入 My Tasks（從 DB）（改成完整 URL，避開 proxy 問題）
+// Load My Tasks data from db（change to Complete URL to reduce proxy problem）
 const loadTasks = async () => {
   try {
     const response = await axios.get('http://localhost:3000/api/tasks/my', {
@@ -59,7 +58,7 @@ const openChangePasswordModal = () => {
 const closeChangePasswordModal = () => showChangePasswordModal.value = false
 
 const submitChangePassword = async () => {
-  // 加 trim 避免空格問題
+  // Use trimm to reduce space
   const trimmedCurrent = passwordForm.value.currentPassword.trim()
   const trimmedNew = passwordForm.value.newPassword.trim()
 
@@ -74,7 +73,7 @@ const submitChangePassword = async () => {
   }
 
   try {
-    await axios.post('http://localhost:3000/api/users/change-password', {  // 改成完整 URL
+    await axios.post('http://localhost:3000/api/users/change-password', {
       currentPassword: trimmedCurrent,
       newPassword: trimmedNew
     }, {
@@ -89,7 +88,6 @@ const submitChangePassword = async () => {
   }
 }
 
-// 登出
 const logout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userRole')

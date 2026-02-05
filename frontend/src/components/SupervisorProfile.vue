@@ -1,24 +1,40 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { useRouter } from 'vue-router'  // 如果 logout 要用 router
+import { useRouter } from 'vue-router'
 
-const router = useRouter()  // 如果用 router.push
+const router = useRouter()
 
-// Supervisor Profile Data（目前硬碼）
-const profile = ref({
-  id: 's111',
-  username: 'John',
-  email: 's111@xxxx.mail.com',
-  contact: '123',
-  role: 'Supervisor'
-})
+const userInfo = ref(null)
+
+const isLoading = ref(true)
 
 // Change Password Modal
-const showChangePasswordModal = ref(false)  // 統一變數名
+const showChangePasswordModal = ref(false)
 const currentPwd = ref('')
 const newPwd = ref('')
 const confirmPwd = ref('')
+
+// Load personal data from db（change to Complete URL to reduce proxy problem）
+const loadUserInfo = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/users/me', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    console.log('Supervisor data loaded:', response.data)  // debug 用
+    userInfo.value = response.data
+  } catch (error) {
+    console.error('Fail to load data:', error)
+    alert('Cannot load user data, please login again')
+    router.push('/')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadUserInfo()
+})
 
 // Change Password
 const openChangePasswordModal = () => {
@@ -47,7 +63,7 @@ const submitChangePassword = async () => {
   }
 
   try {
-    await axios.post('http://localhost:3000/api/users/change-password', {  // 完整 URL
+    await axios.post('http://localhost:3000/api/users/change-password', {
       currentPassword: trimmedCurrent,
       newPassword: trimmedNew
     }, {
@@ -62,50 +78,32 @@ const submitChangePassword = async () => {
   }
 }
 
-// 登出
 const logout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userRole')
   localStorage.removeItem('user')
-  location.href = '/'  // 或 router.push('/') 如果用 router
+  location.href = '/'  // 或 router.push('/')
 }
-
-// Edit User Modal
-// const showEditModal = ref(false)
-// const editForm = ref({ ...profile.value })
-
-// const openEditModal = () => {
-//   editForm.value = { ...profile.value }
-//   showEditModal.value = true
-// }
-
-// const closeEditModal = () => {
-//   showEditModal.value = false
-// }
-
-// const saveEdit = () => {
-//   profile.value.username = editForm.value.username
-//   profile.value.email = editForm.value.email
-//   profile.value.contact = editForm.value.contact
-//   alert('Profile updated successfully!')
-//   closeEditModal()
-// }
 </script>
 
 <template>
   <div class="supervisor-page">
-    <!-- My Profile Card -->
-    <div class="profile-card">
-      <h2>My Profile</h2>
-      <div class="info">
-        <p><strong>ID:</strong> {{ profile.id }}</p>
-        <p><strong>Username:</strong> {{ profile.username }}</p>
-        <p><strong>Email:</strong> {{ profile.email }}</p>
-        <p><strong>Contact:</strong> {{ profile.contact }}</p>
-        <p><strong>Role:</strong> {{ profile.role }}</p>
-      </div>
-      <div class="buttons">
-        <button class="btn-secondary" @click="openChangePasswordModal">Change Password</button>  <!-- 改成正確函式名 -->
+    <!-- Loading -->
+    <div v-if="isLoading" class="loading">Loading profile...</div>
+
+    <div v-else>
+      <!-- My Profile Card -->
+      <div class="profile-card">
+        <h2>My Profile</h2>
+        <div class="info">
+          <p><strong>ID:</strong> {{ userInfo?.id || 'No data' }}</p>
+          <p><strong>Username:</strong> {{ userInfo?.name || 'No data' }}</p>
+          <p><strong>Email:</strong> {{ userInfo?.email || 'No data' }}</p>
+          <p><strong>Role:</strong> {{ userInfo?.role || 'No data' }}</p>
+        </div>
+        <div class="buttons">
+          <button class="btn-secondary" @click="openChangePasswordModal">Change Password</button>
+        </div>
       </div>
     </div>
 
@@ -114,8 +112,8 @@ const logout = () => {
       <div v-if="showChangePasswordModal" class="modal-overlay" @click="closeChangePasswordModal">
         <div class="modal-content" @click.stop>
           <h2>Change Password</h2>
-          <p class="user-info">ID: s111</p>
-          <p class="user-info">Username: John</p>
+          <p class="user-info">ID: {{ userInfo?.id }}</p>
+          <p class="user-info">Username: {{ userInfo?.name }}</p>
 
           <div class="form-group">
             <label>Current Password</label>
@@ -137,39 +135,6 @@ const logout = () => {
           </div>
         </div>
       </div>
-
-      <!-- Edit User Modal -->
-      <!-- <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
-        <div class="modal-content" @click.stop>
-          <h2>Edit User</h2>
-
-          <div class="form-group">
-            <label>User ID:</label>
-            <input type="text" :value="profile.id" disabled />
-          </div>
-          <div class="form-group">
-            <label>Username:</label>
-            <input type="text" v-model="editForm.username" />
-          </div>
-          <div class="form-group">
-            <label>Email:</label>
-            <input type="text" v-model="editForm.email" />
-          </div>
-          <div class="form-group">
-            <label>Contact:</label>
-            <input type="text" v-model="editForm.contact" />
-          </div>
-          <div class="form-group">
-            <label>Role:</label>
-            <button class="role-btn" disabled>Supervisor</button>
-          </div>
-
-          <div class="modal-actions">
-            <button class="btn-submit" @click="saveEdit">Save</button>
-             <button class="btn-cancel" @click="closeEditModal">Cancel</button> -->
-          <!-- </div>
-        </div>
-      </div> --> 
     </teleport>
   </div>
 </template>
@@ -229,8 +194,6 @@ button {
 }
 .btn-secondary { background: #e2e8f0; color: #475569; }
 .btn-secondary:hover { background: #cbd5e1; }
-.btn-primary { background: #3b82f6; color: white; }
-.btn-primary:hover { background: #2563eb; }
 
 /* Modal */
 .modal-overlay {
@@ -249,13 +212,13 @@ button {
   width: 100%; padding: 0.75rem; border: 1px solid #d1d5db;
   border-radius: 8px; font-size: 1rem; color: #0f172a;
 }
-.form-group input:disabled { background: #f3f4f6; color: #6b7280; }
 .forgot-link { display: block; margin-top: 0.5rem; color: #3b82f6; font-size: 0.9rem; text-decoration: none; }
-.role-btn { background: #e5e7eb; color: #4b5563; padding: 0.6rem 1.2rem; border: none; border-radius: 8px; cursor: not-allowed; }
 .modal-actions { display: flex; gap: 1rem; margin-top: 2rem; }
 .btn-submit, .btn-cancel {
   flex: 1; padding: 0.8rem; border-radius: 8px; border: none; cursor: pointer;
 }
 .btn-submit { background: #3b82f6; color: white; }
 .btn-cancel { background: #e5e7eb; color: #374151; }
+
+.loading { text-align: center; padding: 3rem; font-size: 1.2rem; color: #64748b; }
 </style>

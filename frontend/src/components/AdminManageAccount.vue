@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
-// 使用者列表
+// User List
 const users = ref([])
 const isLoading = ref(true)
 const errorMsg = ref('')
@@ -25,7 +25,7 @@ const loadUsers = async () => {
 
 onMounted(loadUsers)
 
-// 搜尋
+// search function
 const searchTerm = ref('')
 const filteredUsers = computed(() => {
   if (!searchTerm.value) return users.value
@@ -59,6 +59,7 @@ const openCreateModal = () => {
 
 const closeCreateModal = () => showCreateModal.value = false
 
+// submitCreate
 const submitCreate = async () => {
   if (!createForm.value.name || !createForm.value.email || !createForm.value.password) {
     alert('Please fill in Name、Email and Password！')
@@ -66,7 +67,7 @@ const submitCreate = async () => {
   }
 
   try {
-    await axios.post('/api/users', createForm.value, {
+    await axios.post('http://localhost:3000/api/users', createForm.value, {  //  change to complete URL
       headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
     })
     alert('create successful！')
@@ -76,6 +77,42 @@ const submitCreate = async () => {
     console.error('create error:', error.response?.data || error)
     const msg = error.response?.data?.message || error.message || 'unknown error'
     alert('create failed：' + msg)
+  }
+}
+
+// saveEdit
+const saveEdit = async () => {
+  if (!editUser.value) return
+
+  try {
+    await axios.patch(`http://localhost:3000/api/users/${editUser.value.id}`, {
+      name: editUser.value.name,
+      email: editUser.value.email,
+      role: editUser.value.role
+    }, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
+    })
+    alert('update successful！')
+    loadUsers()
+    closeEditModal()
+  } catch (err) {
+    alert('update failed：' + (err.response?.data?.message || 'error'))
+  }
+}
+
+// confirmDelete
+const confirmDelete = async () => {
+  if (!userToDelete.value) return
+
+  try {
+    await axios.delete(`http://localhost:3000/api/users/${userToDelete.value.id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
+    })
+    alert('delete sucessful！')
+    loadUsers()
+    closeDeleteModal()
+  } catch (err) {
+    alert('delete failed：' + (err.response?.data?.message || 'error'))
   }
 }
 
@@ -93,25 +130,6 @@ const closeEditModal = () => {
   editUser.value = null
 }
 
-const saveEdit = async () => {
-  if (!editUser.value) return
-
-  try {
-    await axios.patch(`/api/users/${editUser.value.id}`, {
-      name: editUser.value.name,
-      email: editUser.value.email,
-      role: editUser.value.role
-    }, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
-    })
-    alert('update successful！')
-    loadUsers()
-    closeEditModal()
-  } catch (err) {
-    alert('update failed：' + (err.response?.data?.message || 'error'))
-  }
-}
-
 // Delete Modal
 const showDeleteModal = ref(false)
 const userToDelete = ref(null)
@@ -126,20 +144,6 @@ const closeDeleteModal = () => {
   userToDelete.value = null
 }
 
-const confirmDelete = async () => {
-  if (!userToDelete.value) return
-
-  try {
-    await axios.delete(`/api/users/${userToDelete.value.id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` }
-    })
-    alert('delete sucessful！')
-    loadUsers()
-    closeDeleteModal()
-  } catch (err) {
-    alert('delete failed：' + (err.response?.data?.message || 'error'))
-  }
-}
 </script>
 
 <template>

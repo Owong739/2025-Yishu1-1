@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
-// 使用者列表（從 DB 載入）
+// User List
 const users = ref([])
 const isLoading = ref(true)
 const errorMsg = ref('')
@@ -37,7 +37,7 @@ const filteredUsers = computed(() => {
   )
 })
 
-// Create Modal（Supervisor 不能建立 Admin 或 Supervisor）
+// Create Modal（Supervisor cannot create Admin or Supervisor）
 const showCreateModal = ref(false)
 const createForm = ref({ name: '', email: '', password: '', role: 'Developer' })
 
@@ -48,7 +48,7 @@ const roles = [
   'Tester',
   'UAT User',
   'Product Owner'
-  // 故意不加 'Admin' 和 'Supervisor'，Supervisor 無法建立高權限帳號
+  // No 'Admin' and 'Supervisor'
 ]
 
 const openCreateModal = () => {
@@ -59,7 +59,7 @@ const closeCreateModal = () => showCreateModal.value = false
 
 const submitCreate = async () => {
   if (!createForm.value.name || !createForm.value.email || !createForm.value.password) {
-    alert('請填寫 Name、Email 和 Password!')
+    alert('please fill in Name、Email 和 Password!')
     return
   }
 
@@ -109,7 +109,7 @@ const saveEdit = async () => {
   }
 }
 
-// Delete Modal（可加限制：不能刪 Admin 或 Supervisor）
+// Delete Modal（Can add restraint later ：cannot delete Admin or Supervisor）
 const showDeleteModal = ref(false)
 const userToDelete = ref(null)
 
@@ -271,7 +271,6 @@ const confirmDelete = async () => {
 </template>
 
 <style scoped>
-/* 複製 Admin 的樣式 */
 .manage-page { min-height: 100vh; background: #f8fafc; padding: 2rem; font-family: system-ui, -apple-system, sans-serif; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 .header h1 { font-size: 1.8rem; color: #6366f1; } /* Supervisor 靛藍標題 */

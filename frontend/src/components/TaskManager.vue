@@ -150,9 +150,8 @@
             </div>
 
             <div class="form-actions">
-              <!-- Only Project Manager can see and click "Save Changes" -->
+            
               <button
-                v-if="isProjectManager"
                 type="submit"
                 class="save-btn"
               >

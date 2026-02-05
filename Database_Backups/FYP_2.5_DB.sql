@@ -1,0 +1,1 @@
+SELECT * FROM agile_dashboard.users;

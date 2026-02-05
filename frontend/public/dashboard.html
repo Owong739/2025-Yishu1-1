@@ -45,6 +45,16 @@
       box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #f0f0f0;
       margin-bottom: 20px;
     }
+    .sprint-badge {
+      background-color: #f5f5f5;
+      color: #666;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-left: 8px;
+      border: 1px solid #e8e8e8;
+      vertical-align: middle;
+    }
 
     /* 按钮样式 */
     .visual-btn { background: var(--primary-light); color: var(--primary-color); border: 1px solid var(--primary-border); padding: 5px 12px; border-radius: 4px; cursor: pointer; }
@@ -182,7 +192,11 @@
               <h3>To Do <span style="color:#999; font-size:12px; font-weight:normal">({{ todoTasks.length }})</span></h3>
               <div class="task-card" v-for="task in todoTasks" :key="task.id" draggable="true" @dragstart="startDrag($event, task)">
                 <div style="font-weight: 600;">{{ task.name }}</div>
-                <div style="color: #666; font-size: 13px; margin-top:5px">👤 {{ task.assignee }}</div>
+                <div style="color: #666; font-size: 13px; margin-top:5px; display: flex; align-items: center;">
+                    <span>👤 {{ task.assignee }}</span>
+                    <!-- 新增：顯示 Sprint 名稱 -->
+                    <span class="sprint-badge"> {{ getSprintName(task.sprint_id) }}</span>
+                </div>
                 <div class="task-actions">
                     <span class="btn-icon btn-edit" @click="editTask(task)">✎</span>
                     <span class="btn-icon btn-delete" @click="deleteTask(task.id)">🗑️</span>
@@ -196,7 +210,10 @@
               <h3>In Progress <span style="color:#999; font-size:12px; font-weight:normal">({{ inProgressTasks.length }})</span></h3>
               <div class="task-card" v-for="task in inProgressTasks" :key="task.id" draggable="true" @dragstart="startDrag($event, task)">
                 <div style="font-weight: 600;">{{ task.name }}</div>
-                <div style="color: #666; font-size: 13px; margin-top:5px">👤 {{ task.assignee }}</div>
+                <div style="color: #666; font-size: 13px; margin-top:5px; display: flex; align-items: center;">
+                    <span>👤 {{ task.assignee }}</span>
+                    <span class="sprint-badge"> {{ getSprintName(task.sprint_id) }}</span>
+                </div>
                 <div class="task-actions">
                     <span class="btn-icon btn-edit" @click="editTask(task)">✎</span>
                     <span class="btn-icon btn-delete" @click="deleteTask(task.id)">🗑️</span>
@@ -210,7 +227,10 @@
               <h3>Completed <span style="color:#999; font-size:12px; font-weight:normal">({{ completedTasks.length }})</span></h3>
               <div class="task-card" v-for="task in completedTasks" :key="task.id" draggable="true" @dragstart="startDrag($event, task)">
                 <div style="font-weight: 600; text-decoration: line-through; opacity: 0.6">{{ task.name }}</div>
-                <div style="color: #666; font-size: 13px; margin-top:5px">👤 {{ task.assignee }}</div>
+                <div style="color: #666; font-size: 13px; margin-top:5px; display: flex; align-items: center;">
+                    <span>👤 {{ task.assignee }}</span>
+                    <span class="sprint-badge"> {{ getSprintName(task.sprint_id) }}</span>
+                </div>
                 <div class="task-actions">
                     <span class="btn-icon btn-delete" @click="deleteTask(task.id)">🗑️</span>
                 </div>
@@ -379,6 +399,11 @@
         setTimeout(() => { if(this.showVisualArea) this.initPieChart(); }, 1000);
       },
       methods: {
+        getSprintName(sprintId) {
+        if (!this.sprints || this.sprints.length === 0) return 'Loading...';
+        const sprint = this.sprints.find(s => s.id === sprintId);
+        return sprint ? sprint.name : `Sprint ${sprintId}`;
+        },
         async fetchData() {
           try {
             const tRes = await fetch('http://localhost:3000/api/fyp/tasks');

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+
 
 // 定義 TypeScript 介面
 interface Project {
@@ -45,6 +46,10 @@ const fetchProjects = async () => {
     console.error('Error fetching projects:', error);
   }
 };
+
+const projectManagers = computed(() => {
+  return users.value.filter(user => user.role === 'Project Manager');
+});
 
 const fetchUsers = async () => {
   try {
@@ -93,7 +98,8 @@ onMounted(() => {
   const userStr = localStorage.getItem('user');
   if (userStr) {
     userName.value = JSON.parse(userStr).name;
-    fetchProjects();
+    fetchProjects(); 
+    fetchUsers();    
   } else {
     router.push('/');
   }
@@ -148,7 +154,7 @@ onMounted(() => {
           <label>Assign Project Manager:</label>
           <select v-model="selectedManager">
             <option disabled value="">Select a Manager</option>
-            <option v-for="user in users" :key="user.id" :value="user.name">
+            <option v-for="user in projectManagers" :key="user.id" :value="user.name">
               {{ user.name }} ({{ user.role }})
             </option>
           </select>

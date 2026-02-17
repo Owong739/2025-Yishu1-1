@@ -61,6 +61,19 @@ app.get('/api/users', (req, res) => {
     });
 });
 
+app.get('/api/users', (req, res) => {
+  const sql = "SELECT id, name, role FROM users WHERE role = 'Project Manager'";
+  
+  db.query(sql, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({
+      data: results
+    });
+  });
+});
+
 // 2. Get project list API
 app.get('/api/projects', (req, res) => {
     const query = 'SELECT * FROM projects ORDER BY created_at DESC';

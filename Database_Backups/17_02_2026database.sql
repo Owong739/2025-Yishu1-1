@@ -1,10 +1,8 @@
-CREATE DATABASE  IF NOT EXISTS `agile_dashboard` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `agile_dashboard`;
--- MySQL dump 10.13  Distrib 8.0.45, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.44, for Win64 (x86_64)
 --
 -- Host: localhost    Database: agile_dashboard
 -- ------------------------------------------------------
--- Server version	8.0.45
+-- Server version	8.0.44
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -16,6 +14,36 @@ USE `agile_dashboard`;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `project_members`
+--
+
+DROP TABLE IF EXISTS `project_members`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `project_members` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `joined_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_user_project` (`project_id`,`user_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `project_members_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `project_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `project_members`
+--
+
+LOCK TABLES `project_members` WRITE;
+/*!40000 ALTER TABLE `project_members` DISABLE KEYS */;
+INSERT INTO `project_members` VALUES (1,9,2,'2026-02-17 08:34:48'),(2,9,4,'2026-02-17 08:34:52'),(3,8,6,'2026-02-17 08:35:20'),(4,8,3,'2026-02-17 08:35:21'),(5,8,4,'2026-02-17 08:35:23'),(6,8,1,'2026-02-17 08:35:24');
+/*!40000 ALTER TABLE `project_members` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `projects`
@@ -38,7 +66,7 @@ CREATE TABLE `projects` (
   PRIMARY KEY (`id`),
   KEY `owner_id` (`owner_id`),
   CONSTRAINT `projects_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,7 +75,7 @@ CREATE TABLE `projects` (
 
 LOCK TABLES `projects` WRITE;
 /*!40000 ALTER TABLE `projects` DISABLE KEYS */;
-INSERT INTO `projects` VALUES (1,'123','123','To Do',NULL,'2025-11-24 16:58:18',NULL,NULL,0,NULL),(2,'123','123','To Do',NULL,'2025-11-24 16:58:20',NULL,NULL,0,NULL),(3,'Testing 1','this is testing from 2/12/2025','To Do',NULL,'2025-12-01 17:13:26',NULL,NULL,0,NULL),(4,'asfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:34',NULL,NULL,0,NULL),(5,'asdfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:43',NULL,NULL,0,NULL),(6,'Hello World','testing hahaha','To Do',NULL,'2025-12-01 17:23:28',NULL,NULL,3,NULL),(7,'ff123','aa','To Do',NULL,'2026-01-27 15:28:43','2026-01-14','2026-01-21',2,'');
+INSERT INTO `projects` VALUES (1,'123','123','To Do',NULL,'2025-11-24 16:58:18',NULL,NULL,0,NULL),(2,'123','123','To Do',NULL,'2025-11-24 16:58:20',NULL,NULL,0,NULL),(3,'Testing 1','this is testing from 2/12/2025','To Do',NULL,'2025-12-01 17:13:26',NULL,NULL,0,NULL),(4,'asfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:34',NULL,NULL,0,NULL),(5,'asdfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:43',NULL,NULL,0,NULL),(6,'Hello World','testing hahaha','To Do',NULL,'2025-12-01 17:23:28',NULL,NULL,3,NULL),(7,'ff123','aa','To Do',NULL,'2026-01-27 15:28:43','2026-01-14','2026-01-21',2,''),(8,'testing25demo','this is a demo project','To Do',NULL,'2026-02-05 03:31:57','2026-02-06','2026-03-13',3,''),(9,'ProjectNY','This is going to test pm selection','To Do',NULL,'2026-02-17 08:12:26','2026-02-17','2026-03-05',5,'Testing PM');
 /*!40000 ALTER TABLE `projects` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -98,7 +126,7 @@ CREATE TABLE `task_manager` (
   `noDates` int NOT NULL,
   `userStory` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -107,7 +135,7 @@ CREATE TABLE `task_manager` (
 
 LOCK TABLES `task_manager` WRITE;
 /*!40000 ALTER TABLE `task_manager` DISABLE KEYS */;
-INSERT INTO `task_manager` VALUES (1,'aaa','bba','To Do','Low','Admin User','Admin',NULL,7,NULL),(3,'ff','22','In Progress','High','Admin User','Default Role',NULL,8,'ttt'),(4,'Hello World','222','To Do','High','Admin User','Admin',NULL,10,'TTT'),(5,'ff','ff2','In Progress','Medium','testing0101','Tester',NULL,5,'ttt'),(6,'Hello World','Y','In Progress','High','product manager testing 1','Project Manager',1,22,'UU'),(7,'Hello World','111','To Do','Medium','Admin User','Admin',2,14,'2'),(8,'Hello World','hee','To Do','Medium','developer testing 1','Developer',3,21,'11');
+INSERT INTO `task_manager` VALUES (1,'aaa','bba','To Do','Low','Admin User','Admin',NULL,7,NULL),(3,'ff','22','In Progress','High','Admin User','Default Role',NULL,8,'ttt'),(4,'Hello World','222','To Do','High','Admin User','Admin',NULL,10,'TTT'),(5,'ff','ff2','In Progress','Medium','testing0101','Tester',NULL,5,'ttt'),(6,'Hello World','Y','In Progress','High','product manager testing 1','Project Manager',1,22,'UU'),(7,'Hello World','111','To Do','Medium','Admin User','Admin',2,14,'2'),(8,'Hello World','hee','To Do','Medium','developer testing 1','Developer',3,21,'11'),(9,'ff123','testing25','To Do','Medium','Admin User','Admin',2,7,'gsdfgsdfg'),(10,'testing25demo','demo1edited','Review','Low','Admin User','Admin',3,12,'this is demo task.bilibala hello world');
 /*!40000 ALTER TABLE `task_manager` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -127,7 +155,7 @@ CREATE TABLE `tasks` (
   PRIMARY KEY (`id`),
   KEY `sprint_id` (`sprint_id`),
   CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`sprint_id`) REFERENCES `sprints` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -136,7 +164,7 @@ CREATE TABLE `tasks` (
 
 LOCK TABLES `tasks` WRITE;
 /*!40000 ALTER TABLE `tasks` DISABLE KEYS */;
-INSERT INTO `tasks` VALUES (1,'Progress report export function','Osman','todo',1),(2,'User Permission Management','Lucas','inProgress',1),(3,'Mobile adaptation','Desmond','inProgress',2),(4,'Unit test writing','Lucas','todo',2),(5,'Burn-down chart data statistics API','Samson','completed',1),(6,'Design the login page UI','Osman','inProgress',1),(7,'Implement user authentication API','Desmond','todo',2),(8,'Database schema design','Lucas','completed',2);
+INSERT INTO `tasks` VALUES (1,'Progress report export function','Osman','completed',1),(2,'User Permission Management','Lucas','completed',1),(3,'Mobile adaptation','Desmond','inProgress',2),(4,'Unit test writing','Lucas','todo',2),(5,'Burn-down chart data statistics API','Samson','completed',1),(6,'Design the login page UI','Osman','completed',1),(7,'Implement user authentication API','Desmond','todo',2),(8,'Database schema design','Lucas','inProgress',2),(10,'this is demo task 1','','completed',1),(11,'ths is demo 2','osman','completed',2);
 /*!40000 ALTER TABLE `tasks` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -156,7 +184,7 @@ CREATE TABLE `users` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -165,9 +193,17 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin@test.com','123','Admin User','Admin','2025-11-24 15:31:35'),(2,'testing0101@test.com','0101','testing0101','Tester','2026-01-01 04:45:16'),(3,'testingpm@test.com','123','Testing PM','Project Manager','2026-01-23 08:21:52'),(4,'dt1@test.com','123','developer testing 1','Developer','2026-01-24 02:27:06'),(5,'productmt1@test.com','123','product manager testing 1','Project Manager','2026-01-24 02:27:40');
+INSERT INTO `users` VALUES (1,'admin@test.com','123','Admin User','Admin','2025-11-24 15:31:35'),(2,'testing0101@test.com.hk','0101','testing0101','UAT User','2026-01-01 04:45:16'),(3,'testingpm@test.com','123','Testing PM','Project Manager','2026-01-23 08:21:52'),(4,'dt1@test.com','123','developer testing 1','Developer','2026-01-24 02:27:06'),(5,'productmt1@test.com','123','product manager testing 1','Project Manager','2026-01-24 02:27:40'),(6,'testing251@test.com','1234','testing25','Developer','2026-02-05 03:31:09');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Dumping events for database 'agile_dashboard'
+--
+
+--
+-- Dumping routines for database 'agile_dashboard'
+--
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -178,4 +214,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-05 10:06:47
+-- Dump completed on 2026-02-17 16:39:05

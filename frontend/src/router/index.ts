@@ -24,7 +24,7 @@ const router = createRouter({
     { path: '/', name: 'Login', component: LoginPage },
     { path: '/register', name: 'Register', component: RegisterPage },
     { path: '/main', name: 'Main', component: MainPage, meta: { requiresAuth: true } },
-
+    { path: '/project/:id', name: 'ProjectDetail', component: () => import('../components/ProjectDetail.vue')},
     { path: '/profile/supervisor', name: 'SupervisorProfile', component: SupervisorProfile, meta: { requiresRole: 'Supervisor' } },
     { path: '/profile/admin', name: 'AdminProfile', component: AdminProfile, meta: { requiresRole: 'Admin' } },
     { path: '/profile/Project-manager', name: 'ProjectManagerProfile', component: ProjectManagerProfile, meta: { requiresRole: 'Project Manager' } },

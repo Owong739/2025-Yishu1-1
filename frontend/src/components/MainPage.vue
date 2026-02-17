@@ -37,6 +37,10 @@ const newEndDate = ref('');
 const newSprintCount = ref(1);     
 const selectedManager = ref('');
 
+const goToProjectDetail = (projectId: number) => {
+  router.push(`/project/${projectId}`);
+};
+
 // 獲取專案列表
 const fetchProjects = async () => {
   try {
@@ -168,7 +172,7 @@ onMounted(() => {
 
       <!-- 專案卡片列表 -->
       <div class="project-grid">
-        <div v-for="project in projects" :key="project.id" class="project-card">
+        <div v-for="project in projects" :key="project.id" class="project-card"@click="goToProjectDetail(project.id)" >
           <h3>{{ project.name }}</h3>
           <p>{{ project.description }}</p>
           <span class="status-badge" :class="project.status.toLowerCase().replace(' ', '-')">
@@ -301,10 +305,13 @@ input, select {
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  cursor: pointer;
   transition: transform 0.2s;
 }
 .project-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  background-color: #f9f9f9;
 }
 .status-badge {
   display: inline-block;

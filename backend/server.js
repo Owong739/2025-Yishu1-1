@@ -61,6 +61,45 @@ app.get('/api/users', (req, res) => {
     });
 });
 
+// 獲取特定專案的所有成員
+app.get('/api/projects/:id/members', (req, res) => {
+  const sql = `
+    SELECT u.id, u.name, u.role, u.email 
+    FROM users u
+    JOIN project_members pm ON u.id = pm.user_id
+    WHERE pm.project_id = ?`;
+    
+  db.query(sql, [req.params.id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ data: results });
+  });
+});
+
+// 加入新成員到專案
+app.post('/api/projects/:id/members', (req, res) => {
+  const { userId } = req.body;
+  const projectId = req.params.id;
+  
+  const sql = "INSERT INTO project_members (project_id, user_id) VALUES (?, ?)";
+  db.query(sql, [projectId, userId], (err, result) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ message: "User already in project" });
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ message: "Member added successfully" });
+  });
+});
+
+app.get('/api/projects/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = "SELECT * FROM projects WHERE id = ?";
+  db.query(sql, [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ message: "Project not found" });
+    res.json({ data: results[0] });
+  });
+});
+
 app.get('/api/users', (req, res) => {
   const sql = "SELECT id, name, role FROM users WHERE role = 'Project Manager'";
   

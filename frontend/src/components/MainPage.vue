@@ -36,6 +36,7 @@ const newStartDate = ref('');
 const newEndDate = ref('');        
 const newSprintCount = ref(1);     
 const selectedManager = ref('');
+const currentUserRole = ref('');
 
 const goToProjectDetail = (projectId: number) => {
   router.push(`/project/${projectId}`);
@@ -44,7 +45,20 @@ const goToProjectDetail = (projectId: number) => {
 // 獲取專案列表
 const fetchProjects = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/projects');
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return;
+    
+    const user = JSON.parse(userStr);
+
+    // 將使用者資訊作為參數發送給後端
+    const response = await axios.get('http://localhost:3000/api/projects', {
+      params: {
+        userId: user.id,
+        role: user.role,
+        userName: user.name
+      }
+    });
+    
     projects.value = response.data.data;
   } catch (error) {
     console.error('Error fetching projects:', error);
@@ -101,9 +115,10 @@ const logout = () => {
 onMounted(() => {
   const userStr = localStorage.getItem('user');
   if (userStr) {
-    userName.value = JSON.parse(userStr).name;
-    fetchProjects(); 
-    fetchUsers();    
+    const user = JSON.parse(userStr);
+    userName.value = user.name;
+    currentUserRole.value = user.role; 
+    fetchProjects();
   } else {
     router.push('/');
   }
@@ -116,9 +131,15 @@ onMounted(() => {
     <div class="content">
       <div class="actions">
         <h2>Your Projects</h2>
-        <button @click="showCreateModal = !showCreateModal" class="create-btn">
+
+        <button 
+          v-if="currentUserRole === 'Admin' || currentUserRole === 'Project Manager'"
+          @click="showCreateModal = !showCreateModal" 
+          class="create-btn"
+        >
           + Create New Project
-        </button>
+  </button>
+
       </div>
 
       <!-- 創建專案的簡單區塊 -->

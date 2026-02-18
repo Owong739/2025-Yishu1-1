@@ -115,12 +115,27 @@ app.get('/api/users', (req, res) => {
 
 // 2. Get project list API
 app.get('/api/projects', (req, res) => {
-    const query = 'SELECT * FROM projects ORDER BY created_at DESC';
-    
-    db.query(query, (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true, data: results });
-    });
+  const { userId, role, userName } = req.query; 
+
+  let sql = "";
+  let params = [];
+
+  if (role === 'Admin') {
+    sql = "SELECT * FROM projects";
+  } else {
+    sql = `
+      SELECT DISTINCT p.* 
+      FROM projects p
+      LEFT JOIN project_members pm ON p.id = pm.project_id
+      WHERE p.project_manager = ? OR pm.user_id = ?
+    `;
+    params = [userName, userId]; 
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ data: results });
+  });
 });
 
 // Create Project API
@@ -150,6 +165,45 @@ app.post('/api/projects', (req, res) => {
             } 
         });
     });
+});
+
+app.put('/api/projects/:id', (req, res) => {
+  const projectId = req.params.id;
+  const { name, description, start_date, end_date, sprint_count, project_manager, userRole } = req.body;
+
+  // 1. 先查詢舊的資料
+  const checkSql = "SELECT project_manager FROM projects WHERE id = ?";
+  db.query(checkSql, [projectId], (err, rows) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (rows.length === 0) return res.status(404).json({ message: "Project not found" });
+
+    // 使用 trim() 去除可能的空格，避免比對出錯
+    const oldPm = (rows[0].project_manager || "").trim();
+    const newPm = (project_manager || "").trim();
+
+    // 除錯用：在後端 Console 印出比對資訊
+    console.log(`正在檢查權限 - 角色: ${userRole}`);
+    console.log(`舊PM: [${oldPm}], 新PM: [${newPm}]`);
+
+    // 2. 權限檢查邏輯
+    // 如果新舊 PM 不同，且請求者不是 Admin，則拒絕
+    if (oldPm !== newPm && userRole !== 'Admin') {
+       console.log("拒絕修改：非 Admin 嘗試變更 PM");
+       return res.status(403).json({ message: "Only Admin can change Project Manager" });
+    }
+
+    // 3. 執行更新
+    const updateSql = `
+      UPDATE projects 
+      SET name=?, description=?, start_date=?, end_date=?, sprint_count=?, project_manager=? 
+      WHERE id=?
+    `;
+    
+    db.query(updateSql, [name, description, start_date, end_date, sprint_count, newPm, projectId], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: "Project updated successfully" });
+    });
+  });
 });
 
 // 4. User managerment API

@@ -3,10 +3,14 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2');
+const { createServer } = require('http'); 
+const { Server } = require('socket.io');  
+
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const httpServer = createServer(app);
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -25,6 +29,67 @@ db.connect(err => {
     } else {
         console.log('Connected to MySQL database');
     }
+});
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST"]
+    }
+});
+
+
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    // 進入 Project 房間
+    socket.on('joinProject', (projectId) => {
+        socket.join(`project_${projectId}`);
+        console.log(`User joined room: project_${projectId}`);
+    });
+
+    // 建立個人房，例如 'user_5'
+    socket.on('joinSelf', (userId) => {
+        socket.join(`user_${userId}`);
+        console.log(`User ${userId} joined their private room`);
+    });
+
+    // 處理傳送訊息
+    socket.on('sendMessage', (data) => {
+        const { project_id, user_id, user_name, message } = data;
+
+        // 1. 存入資料庫
+        const sql = "INSERT INTO project_messages (project_id, user_id, user_name, message) VALUES (?, ?, ?, ?)";
+        db.query(sql, [project_id, user_id, user_name, message], (err, result) => {
+            if (err) return console.error(err);
+
+            // 2. 廣播比同一個 Project 房嘅所有人 (包括自己)
+            const newMessage = {
+                id: result.insertId,
+                ...data,
+                created_at: new Date()
+            };
+            io.to(`project_${project_id}`).emit('receiveMessage', newMessage);
+        });
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+});
+
+// 新增 API：獲取歷史訊息
+app.get('/api/projects/:id/messages', (req, res) => {
+    const sql = "SELECT * FROM project_messages WHERE project_id = ? ORDER BY created_at ASC";
+    db.query(sql, [req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ data: results });
+    });
+});
+
+// 最後將 app.listen 改成 httpServer.listen
+httpServer.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
 
 // --- API Routes ---
@@ -52,14 +117,8 @@ app.post('/api/login', (req, res) => {
 });
 
 
-// Get all users list (For Dropdown)
-app.get('/api/users', (req, res) => {
-    const query = 'SELECT id, name, role FROM users';
-    db.query(query, (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true, data: results });
-    });
-});
+
+
 
 // 獲取特定專案的所有成員
 app.get('/api/projects/:id/members', (req, res) => {
@@ -79,14 +138,40 @@ app.get('/api/projects/:id/members', (req, res) => {
 app.post('/api/projects/:id/members', (req, res) => {
   const { userId } = req.body;
   const projectId = req.params.id;
-  
-  const sql = "INSERT INTO project_members (project_id, user_id) VALUES (?, ?)";
-  db.query(sql, [projectId, userId], (err, result) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ message: "User already in project" });
-      return res.status(500).json({ error: err.message });
+
+  // 檢查是否重複加入
+  const checkSql = "SELECT * FROM project_members WHERE project_id = ? AND user_id = ?";
+  db.query(checkSql, [projectId, userId], (err, rows) => {
+    if (rows && rows.length > 0) {
+      return res.status(400).json({ message: "該用戶已經在專案中，不會重複發送通知" });
     }
-    res.json({ message: "Member added successfully" });
+
+    // A. 加入成員
+    const sqlMember = "INSERT INTO project_members (project_id, user_id) VALUES (?, ?)";
+    db.query(sqlMember, [projectId, userId], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      // B. 拿專案名稱
+      db.query("SELECT name FROM projects WHERE id = ?", [projectId], (err, proj) => {
+        const projectName = proj ? proj[0].name : "Unknown Project";
+        const msg = `You have been added to project: ${projectName}`;
+
+        // C. 寫入通知表
+        db.query("INSERT INTO notifications (user_id, message) VALUES (?, ?)", [userId, msg], (err, noti) => {
+          if (err) console.error("Notification DB Error:", err);
+
+          // D. Socket 發送 (確保 userId 正確)
+          console.log(`發送 Socket 通知給 user_${userId}`);
+          io.to(`user_${userId}`).emit('newNotification', {
+            id: noti ? noti.insertId : Date.now(),
+            message: msg,
+            created_at: new Date()
+          });
+
+          res.json({ success: true, message: "Member added and notified" });
+        });
+      });
+    });
   });
 });
 
@@ -100,16 +185,20 @@ app.get('/api/projects/:id', (req, res) => {
   });
 });
 
+// Get all users list (For Dropdown)
 app.get('/api/users', (req, res) => {
-  const sql = "SELECT id, name, role FROM users WHERE role = 'Project Manager'";
+  const { role } = req.query;
+  let sql = 'SELECT id, name, role FROM users';
+  let params = [];
   
-  db.query(sql, (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json({
-      data: results
-    });
+  if (role) {
+    sql += ' WHERE role = ?';
+    params.push(role);
+  }
+  
+  db.query(sql, params, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, data: results });
   });
 });
 
@@ -167,41 +256,38 @@ app.post('/api/projects', (req, res) => {
     });
 });
 
+app.get('/api/notifications/:userId', (req, res) => {
+  const sql = "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20";
+  db.query(sql, [req.params.userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ data: results });
+  });
+});
+
 app.put('/api/projects/:id', (req, res) => {
   const projectId = req.params.id;
-  const { name, description, start_date, end_date, sprint_count, project_manager, userRole } = req.body;
+  let { name, description, start_date, end_date, sprint_count, project_manager, userRole } = req.body;
 
-  // 1. 先查詢舊的資料
+  // 格式化日期，避免 MySQL 報錯
+  if (start_date) start_date = start_date.split('T')[0];
+  if (end_date) end_date = end_date.split('T')[0];
+
   const checkSql = "SELECT project_manager FROM projects WHERE id = ?";
   db.query(checkSql, [projectId], (err, rows) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (rows.length === 0) return res.status(404).json({ message: "Project not found" });
+    if (err || rows.length === 0) return res.status(404).json({ message: "Project not found" });
 
-    // 使用 trim() 去除可能的空格，避免比對出錯
     const oldPm = (rows[0].project_manager || "").trim();
     const newPm = (project_manager || "").trim();
 
-    // 除錯用：在後端 Console 印出比對資訊
-    console.log(`正在檢查權限 - 角色: ${userRole}`);
-    console.log(`舊PM: [${oldPm}], 新PM: [${newPm}]`);
-
-    // 2. 權限檢查邏輯
-    // 如果新舊 PM 不同，且請求者不是 Admin，則拒絕
+    // 只有 Admin 可以改 PM
     if (oldPm !== newPm && userRole !== 'Admin') {
-       console.log("拒絕修改：非 Admin 嘗試變更 PM");
-       return res.status(403).json({ message: "Only Admin can change Project Manager" });
+      return res.status(403).json({ message: "Only Admin can change Project Manager" });
     }
 
-    // 3. 執行更新
-    const updateSql = `
-      UPDATE projects 
-      SET name=?, description=?, start_date=?, end_date=?, sprint_count=?, project_manager=? 
-      WHERE id=?
-    `;
-    
-    db.query(updateSql, [name, description, start_date, end_date, sprint_count, newPm, projectId], (err, result) => {
+    const updateSql = "UPDATE projects SET name=?, description=?, start_date=?, end_date=?, sprint_count=?, project_manager=? WHERE id=?";
+    db.query(updateSql, [name, description, start_date, end_date, sprint_count, newPm, projectId], (err) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: "Project updated successfully" });
+      res.json({ success: true, message: "Project updated" });
     });
   });
 });
@@ -510,19 +596,7 @@ app.post('/api/register', (req, res) => {
 // Samson task's part
 
 // 4. Get All Users API (給 Assignee 下拉選單用)
-app.get('/api/users', (req, res) => {
-  const query = 'SELECT id, name, email, role, created_at FROM users ORDER BY name ASC';
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('query user fail:', err);
-      return res.status(500).json({ success: false, error: err.message });
-    }
-    res.json({
-      success: true,
-      data: results
-    });
-  });
-});
+
 
 // Get All Tasks API (給任務列表用，可加 project 篩選)
 app.get('/api/tasks', (req, res) => {
@@ -637,6 +711,45 @@ app.put('/api/tasks/:id', (req, res) => {
     res.json({
       success: true,
       message: 'Task updated successfully'
+    });
+  });
+});
+
+app.post('/api/projects/:id/members', (req, res) => {
+  const { userId } = req.body;
+  const projectId = req.params.id;
+  
+  // 1. 先加人入 project_members (你原本有的代碼)
+  const sqlMember = "INSERT INTO project_members (project_id, user_id) VALUES (?, ?)";
+  db.query(sqlMember, [projectId, userId], (err, result) => {
+    if (err) {
+      console.error("Add Member Error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+
+    // 2. 搵返個 Project 名 (用嚟寫入通知內容)
+    db.query("SELECT name FROM projects WHERE id = ?", [projectId], (err, proj) => {
+      if (err || proj.length === 0) return res.json({ message: "Member added but project not found for notification" });
+      const projectName = proj[0].name;
+      const msg = `You have been added to project: ${projectName}`;
+
+      // 3. 寫入通知表
+      db.query("INSERT INTO notifications (user_id, message) VALUES (?, ?)", [userId, msg], (err, noti) => {
+        if (err) {
+          console.error("Notification DB Error:", err);
+          return res.json({ message: "Member added, but failed to save notification to DB" });
+        }
+        
+        // 4. 【重點】用 Socket 即時射出去比嗰個 User
+        console.log(`Sending socket notification to user_${userId}`);
+        io.to(`user_${userId}`).emit('newNotification', {
+          id: noti.insertId,
+          message: msg,
+          created_at: new Date()
+        });
+
+        res.json({ success: true, message: "Member added and notified" });
+      });
     });
   });
 });

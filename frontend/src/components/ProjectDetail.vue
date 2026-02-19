@@ -116,15 +116,40 @@
           </div>
         </div>
       </div>
+      <div class="chat-section">
+      <h2>Project Chat</h2>
+      <div class="chat-window" ref="chatWindow">
+        <div v-for="msg in messages" :key="msg.id" 
+             :class="['message-bubble', msg.user_id === currentUser.id ? 'my-msg' : 'others-msg']">
+          <div class="msg-info">
+            <strong>{{ msg.user_name }}</strong> 
+            <span class="msg-time">{{ formatTime(msg.created_at) }}</span>
+          </div>
+          <p>{{ msg.message }}</p>
+        </div>
+      </div>
+      
+      <div class="chat-input">
+        <input v-model="newMessage" @keyup.enter="sendChat" placeholder="Type a message..." />
+        <button @click="sendChat">Send</button>
+      </div>
     </div>
     </div>
+  </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted, nextTick  } from 'vue';
+import { io } from 'socket.io-client';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
+
+
+const socket = io('http://localhost:3000');
+const messages = ref<any[]>([]);
+const newMessage = ref('');
+const chatWindow = ref<HTMLElement | null>(null);
 
 const route = useRoute();
 const project = ref<any>(null);
@@ -268,13 +293,56 @@ const calculatedSprints = computed(() => {
   return sprints;
 });
 
+const scrollToBottom = async () => {
+  await nextTick();
+  if (chatWindow.value) {
+    chatWindow.value.scrollTop = chatWindow.value.scrollHeight;
+  }
+};
+
+const fetchMessages = async () => {
+  const id = route.params.id;
+  const res = await axios.get(`http://localhost:3000/api/projects/${id}/messages`);
+  messages.value = res.data.data;
+  scrollToBottom();
+};
+
+const sendChat = () => {
+  if (!newMessage.value.trim()) return;
+
+  const chatData = {
+    project_id: route.params.id,
+    user_id: currentUser.id,
+    user_name: currentUser.name,
+    message: newMessage.value
+  };
+
+  socket.emit('sendMessage', chatData);
+  newMessage.value = '';
+};
+
+const formatTime = (dateStr: string) => {
+  return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
 onMounted(() => {
   fetchProjectDetail();
   fetchMembers();
+  fetchMessages();
+
+  socket.emit('joinProject', route.params.id);
   
+  socket.on('receiveMessage', (msg) => {
+    messages.value.push(msg);
+    scrollToBottom();
+  });
   if (currentUserRole === 'Admin' || currentUserRole === 'Project Manager') {
     fetchAllUsers();
   }
+});
+
+onUnmounted(() => {
+  socket.disconnect(); // 離開頁面時斷開連接
 });
 </script>
 
@@ -517,5 +585,66 @@ select {
   color: #27ae60;
   font-weight: bold;
   font-size: 0.9rem;
+}
+
+.chat-section {
+  margin-top: 3rem;
+  background: #fdfdfd;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #eee;
+}
+.chat-window {
+  height: 300px;
+  overflow-y: auto;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.message-bubble {
+  max-width: 70%;
+  padding: 0.8rem;
+  border-radius: 12px;
+}
+.my-msg {
+  align-self: flex-end;
+  background: #e3f2fd;
+  border-bottom-right-radius: 2px;
+}
+.others-msg {
+  align-self: flex-start;
+  background: #f5f5f5;
+  border-bottom-left-radius: 2px;
+}
+.msg-info {
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.msg-time { color: #999; }
+.chat-input {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.chat-input input {
+  flex: 1;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.chat-input button {
+  padding: 0 1.5rem;
+  background: #42b983;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>

@@ -2,10 +2,27 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { io } from 'socket.io-client';
+import axios from 'axios';
+
+interface NotificationItem {
+  id: number;
+  user_id: number;
+  message: string;
+  is_read: number;
+  created_at: string;
+}
 
 const router = useRouter()
 const userName = ref('')
 const userRole = ref('')
+const socket = io('http://localhost:3000');
+const notifications = ref<NotificationItem[]>([]);
+const unreadCount = ref(0);
+const showNoti = ref(false);
+
+const userStr = localStorage.getItem('user');
+const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
 // 共用導航項目（所有角色都會看到）
 const commonNavItems = [
@@ -85,9 +102,27 @@ const updateUserInfo = () => {
     const user = JSON.parse(userStr)
     userName.value = user.name || 'User'
     userRole.value = user.role?.trim() || ''
-  } else {
-    userName.value = ''
-    userRole.value = ''
+    return user; 
+  }
+  return null;
+}
+
+// 獲取歷史通知
+const fetchNotifications = async (userId: number) => {
+  try {
+    const res = await axios.get(`http://localhost:3000/api/notifications/${userId}`);
+    notifications.value = res.data.data;
+    // 計算未讀數量 (假設 is_read 為 0 是未讀)
+    unreadCount.value = notifications.value.filter(n => n.is_read === 0).length;
+  } catch (err) {
+    console.error('Fetch notifications error:', err);
+  }
+}
+
+const toggleNoti = () => {
+  showNoti.value = !showNoti.value;
+  if (showNoti.value) {
+    unreadCount.value = 0; // 點開鈴鐺後清除未讀計數
   }
 }
 
@@ -107,13 +142,34 @@ const handleStorageChange = (event: StorageEvent) => {
 }
 
 onMounted(() => {
-  updateUserInfo()
-  window.addEventListener('storage', handleStorageChange)
-})
+  const currentUser = updateUserInfo();
+  window.addEventListener('storage', updateUserInfo);
+
+  if (currentUser && currentUser.id) {
+    console.log('User ID for Socket:', currentUser.id);
+    
+    // A. 抓取舊的通知
+    fetchNotifications(currentUser.id);
+
+    // B. Socket 加入個人房間
+    socket.emit('joinSelf', currentUser.id);
+
+    // C. 監聽即時通知
+    socket.on('newNotification', (data: NotificationItem) => {
+      console.log('收到即時通知:', data);
+      notifications.value.unshift(data);
+      unreadCount.value++;
+      // alert('New Notification: ' + data.message);
+    });
+  }
+});
+
 
 onUnmounted(() => {
   window.removeEventListener('storage', handleStorageChange)
+  socket.disconnect();
 })
+
 </script>
 
 <template>
@@ -124,33 +180,38 @@ onUnmounted(() => {
       <!-- 1. 所有角色共用的 Dashboard -->
       <router-link to="/main" class="nav-item">Dashboard</router-link>
 
-      <!-- 2. 角色专属 + 共用项目 (这里加入了判断) -->
-      <!-- 使用 template 标签进行循环，不会在页面上生成多余的 div -->
+      <!-- 2. 角色專屬導航 -->
       <template v-for="item in navItemsByRole[userRole as keyof typeof navItemsByRole] || []" :key="item.path">
-        
-        <!-- 情况 A: 如果是你的静态网页 (.html)，使用普通的 a 标签 -->
-        <a 
-          v-if="item.path.includes('.html')" 
-          :href="item.path" 
-          class="nav-item"
-        >
+        <a v-if="item.path.includes('.html')" :href="item.path" class="nav-item">
           {{ item.label }}
         </a>
-
-        <!-- 情况 B: 如果是队友的普通页面，继续使用 router-link -->
-        <router-link 
-          v-else 
-          :to="item.path" 
-          class="nav-item"
-        >
+        <router-link v-else :to="item.path" class="nav-item">
           {{ item.label }}
         </router-link>
-
       </template>
     </nav>
 
+    <!-- 右側資訊區塊 -->
     <div class="user-info">
+      <!-- A. 歡迎字樣 -->
       <span v-if="userName">Welcome, {{ userName }}</span>
+
+      <!-- B. 通知圖標 (移到這裡) -->
+      <div class="noti-wrapper">
+        <span class="bell-icon" @click="toggleNoti">
+          🔔 <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+        </span>
+        
+        <!-- 下拉清單 -->
+        <div v-if="showNoti" class="noti-dropdown">
+          <div v-for="n in notifications" :key="n.id" class="noti-item">
+            {{ n.message }}
+          </div>
+          <div v-if="notifications.length === 0" class="noti-item">No notifications</div>
+        </div>
+      </div>
+
+      <!-- C. 登出按鈕 -->
       <button @click="logout" class="logout-btn">Logout</button>
     </div>
   </header>
@@ -198,7 +259,7 @@ header {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .logout-btn {
@@ -212,5 +273,38 @@ header {
 
 .logout-btn:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.noti-wrapper {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.badge {
+  background: red; color: white; border-radius: 50%;
+  padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -5px;
+}
+.noti-dropdown {
+  position: absolute;
+  right: 0;          
+  top: 40px;        
+  width: 250px;
+  background: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  z-index: 100;
+  max-height: 300px;
+  overflow-y: auto;
+  color: #333;       
+  border-radius: 4px;
+}
+
+.noti-item {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+  line-height: 1.4;
 }
 </style>

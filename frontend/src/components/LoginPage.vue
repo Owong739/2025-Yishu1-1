@@ -25,9 +25,7 @@ const handleLogin = async () => {
 
       console.log('登入成功，userRole:', user.role);
 
-      // 根據角色自動跳到個人 Profile
-      const rolePath = user.role.toLowerCase().replace(' ', '-');
-      router.push(`/profile/${rolePath}`);
+      router.push(`/main`);
     }
   } catch (error) {
     errorMessage.value = 'Login failed. Please check your credentials.';

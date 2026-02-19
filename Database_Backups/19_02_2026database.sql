@@ -16,6 +16,35 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `notifications`
+--
+
+DROP TABLE IF EXISTS `notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notifications` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `message` text NOT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notifications`
+--
+
+LOCK TABLES `notifications` WRITE;
+/*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
+INSERT INTO `notifications` VALUES (1,2,'You have been added to project: testing noti 2',0,'2026-02-19 03:54:47'),(2,4,'You have been added to project: testing noti 2',0,'2026-02-19 03:54:52');
+/*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `project_members`
 --
 
@@ -32,7 +61,7 @@ CREATE TABLE `project_members` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `project_members_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
   CONSTRAINT `project_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,8 +70,38 @@ CREATE TABLE `project_members` (
 
 LOCK TABLES `project_members` WRITE;
 /*!40000 ALTER TABLE `project_members` DISABLE KEYS */;
-INSERT INTO `project_members` VALUES (1,9,2,'2026-02-17 08:34:48'),(2,9,4,'2026-02-17 08:34:52'),(3,8,6,'2026-02-17 08:35:20'),(4,8,3,'2026-02-17 08:35:21'),(5,8,4,'2026-02-17 08:35:23'),(6,8,1,'2026-02-17 08:35:24');
+INSERT INTO `project_members` VALUES (1,9,2,'2026-02-17 08:34:48'),(2,9,4,'2026-02-17 08:34:52'),(3,8,6,'2026-02-17 08:35:20'),(4,8,3,'2026-02-17 08:35:21'),(5,8,4,'2026-02-17 08:35:23'),(6,8,1,'2026-02-17 08:35:24'),(7,7,2,'2026-02-18 03:04:07'),(9,7,4,'2026-02-18 03:04:12'),(10,7,5,'2026-02-18 03:04:14'),(11,4,1,'2026-02-19 03:31:06'),(12,4,2,'2026-02-19 03:31:08'),(13,4,3,'2026-02-19 03:31:09'),(14,4,4,'2026-02-19 03:31:11'),(15,4,5,'2026-02-19 03:31:12'),(16,4,6,'2026-02-19 03:31:13'),(17,10,2,'2026-02-19 03:41:49'),(18,10,3,'2026-02-19 03:41:50'),(20,10,1,'2026-02-19 03:41:56'),(21,10,6,'2026-02-19 03:43:17'),(22,10,5,'2026-02-19 03:43:52'),(23,11,2,'2026-02-19 03:54:47'),(24,11,4,'2026-02-19 03:54:52');
 /*!40000 ALTER TABLE `project_members` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `project_messages`
+--
+
+DROP TABLE IF EXISTS `project_messages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `project_messages` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `user_name` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `project_id` (`project_id`),
+  CONSTRAINT `project_messages_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `project_messages`
+--
+
+LOCK TABLES `project_messages` WRITE;
+/*!40000 ALTER TABLE `project_messages` DISABLE KEYS */;
+INSERT INTO `project_messages` VALUES (1,1,1,'Admin User','hi','2026-02-19 03:15:39'),(2,9,1,'Admin User','testing testing','2026-02-19 03:16:04'),(3,9,3,'Testing PM','what up','2026-02-19 03:16:23'),(4,8,3,'Testing PM','hello','2026-02-19 03:21:23');
+/*!40000 ALTER TABLE `project_messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -66,7 +125,7 @@ CREATE TABLE `projects` (
   PRIMARY KEY (`id`),
   KEY `owner_id` (`owner_id`),
   CONSTRAINT `projects_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -75,7 +134,7 @@ CREATE TABLE `projects` (
 
 LOCK TABLES `projects` WRITE;
 /*!40000 ALTER TABLE `projects` DISABLE KEYS */;
-INSERT INTO `projects` VALUES (1,'123','123','To Do',NULL,'2025-11-24 16:58:18',NULL,NULL,0,NULL),(2,'123','123','To Do',NULL,'2025-11-24 16:58:20',NULL,NULL,0,NULL),(3,'Testing 1','this is testing from 2/12/2025','To Do',NULL,'2025-12-01 17:13:26',NULL,NULL,0,NULL),(4,'asfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:34',NULL,NULL,0,NULL),(5,'asdfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:43',NULL,NULL,0,NULL),(6,'Hello World','testing hahaha','To Do',NULL,'2025-12-01 17:23:28',NULL,NULL,3,NULL),(7,'ff123','aa','To Do',NULL,'2026-01-27 15:28:43','2026-01-14','2026-01-21',2,''),(8,'testing25demo','this is a demo project','To Do',NULL,'2026-02-05 03:31:57','2026-02-06','2026-03-13',3,''),(9,'ProjectNY','This is going to test pm selection','To Do',NULL,'2026-02-17 08:12:26','2026-02-17','2026-03-05',5,'Testing PM');
+INSERT INTO `projects` VALUES (1,'123','123','To Do',NULL,'2025-11-24 16:58:18','2026-02-19','2026-03-12',2,NULL),(2,'123','123','To Do',NULL,'2025-11-24 16:58:20',NULL,NULL,0,NULL),(3,'Testing 1','this is testing from 2/12/2025','To Do',NULL,'2025-12-01 17:13:26',NULL,NULL,0,'product manager testing 1'),(4,'asfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:34',NULL,NULL,0,'Testing PM'),(5,'asdfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:43',NULL,NULL,0,NULL),(6,'Hello World','testing hahaha','To Do',NULL,'2025-12-01 17:23:28',NULL,NULL,3,NULL),(7,'ff123','aa','To Do',NULL,'2026-01-27 15:28:43','2026-01-14','2026-01-21',2,''),(8,'testing25demo','this is a demo project','To Do',NULL,'2026-02-05 03:31:57','2026-03-12','2026-02-19',3,'Testing PM'),(9,'ProjectNY','This is going to test pm selection','To Do',NULL,'2026-02-17 08:12:26','2026-02-17','2026-03-05',5,'Testing PM'),(10,'Testing notification','use to test noti','To Do',NULL,'2026-02-19 03:40:44','2026-03-05','2026-02-03',4,'Testing PM'),(11,'testing noti 2','','To Do',NULL,'2026-02-19 03:53:50','2026-02-11','2026-03-04',1,'product manager testing 1');
 /*!40000 ALTER TABLE `projects` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -214,4 +273,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-17 16:39:05
+-- Dump completed on 2026-02-19 12:05:10

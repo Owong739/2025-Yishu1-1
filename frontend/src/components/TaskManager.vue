@@ -3,31 +3,36 @@
     <header class="header">
       <div class="title-wrapper">
         <h1>Task Manager</h1>
-        <button @click="openCreateModal" class="create-header-btn">
+        <!-- FEATURE: Only Project Manager can see/click the Create button -->
+        <button 
+          v-if="isProjectManager" 
+          @click="openCreateModal" 
+          class="create-header-btn"
+        >
           + Create New Task
         </button>
       </div>
     </header>
 
     <div class="main-layout">
-    <aside class="sidebar">
-      <h3>Projects</h3>
-      <ul class="project-list">
-        <li :class="{ active: selectedProject === null }" @click="selectProject(null)">
-          All Tasks
-        </li>
-        <li
-          v-for="project in projects"
-          :key="project.id"
-          :class="{ active: selectedProject === project.name }"
-          @click="selectProject(project.name)"
-        >
-          {{ project.name }}
-          <span v-if="selectedProject === project.name" class="active-indicator">✓</span>
-        </li>
-        <li v-if="projects.length === 0" class="no-projects">No projects found</li>
-      </ul>
-    </aside>
+      <aside class="sidebar">
+        <h3>Projects</h3>
+        <ul class="project-list">
+          <li :class="{ active: selectedProject === null }" @click="selectProject(null)">
+            All Tasks
+          </li>
+          <li
+            v-for="project in projects"
+            :key="project.id"
+            :class="{ active: selectedProject === project.name }"
+            @click="selectProject(project.name)"
+          >
+            {{ project.name }}
+            <span v-if="selectedProject === project.name" class="active-indicator">✓</span>
+          </li>
+          <li v-if="projects.length === 0" class="no-projects">No projects found</li>
+        </ul>
+      </aside>
 
       <div class="content">
         <div v-if="isLoading" class="loading">Loading tasks...</div>
@@ -73,7 +78,7 @@
 
         <div v-else class="no-tasks">
           <h3>No tasks found for this project</h3>
-          <p>Try creating a new task for "{{ selectedProject || 'this project' }}"</p>
+          <p>Try selecting another project or create a new task!</p>
         </div>
 
         <!-- Edit Form Section -->
@@ -88,11 +93,11 @@
             </div>
             <div class="form-field">
               <label>Title *</label>
-              <input v-model="currentTask.title" required />
+              <input v-model="currentTask.title" :readonly="!isProjectManager" :class="{ readonly: !isProjectManager }" required />
             </div>
             <div class="form-field">
               <label>Status</label>
-              <select v-model="currentTask.status">
+              <select v-model="currentTask.status" :disabled="!isProjectManager">
                 <option>To Do</option>
                 <option>In Progress</option>
                 <option>Review</option>
@@ -101,7 +106,7 @@
             </div>
             <div class="form-field">
               <label>Priority</label>
-              <select v-model="currentTask.priority">
+              <select v-model="currentTask.priority" :disabled="!isProjectManager">
                 <option>High</option>
                 <option>Medium</option>
                 <option>Low</option>
@@ -109,7 +114,7 @@
             </div>
             <div class="form-field">
               <label>Assignee</label>
-              <select v-model="currentTask.assignee" @change="autoFillRoleEdit">
+              <select v-model="currentTask.assignee" @change="autoFillRoleEdit" :disabled="!isProjectManager">
                 <option value="">- Select -</option>
                 <option v-for="u in availableUsers" :key="u.id" :value="u.name">
                   {{ u.name }}
@@ -126,13 +131,23 @@
             </div>
             <div class="form-field">
               <label>No.Dates</label>
-              <input v-model.number="currentTask.noDates" type="number" />
+              <input v-model.number="currentTask.noDates" type="number" :readonly="!isProjectManager" :class="{ readonly: !isProjectManager }" />
             </div>
+
+            <!-- FEATURE: Only Business Analyst can edit the User Story -->
             <div class="form-field full-width">
-              <label>User Story</label>
-              <textarea v-model="currentTask.userStory" rows="6"></textarea>
+              <label>User Story {{ !isBusinessAnalyst ? '(Read-only for your role)' : '' }}</label>
+              <textarea 
+                v-model="currentTask.userStory" 
+                rows="6" 
+                :readonly="!isBusinessAnalyst" 
+                :class="{ 'readonly': !isBusinessAnalyst }"
+                :placeholder="isBusinessAnalyst ? 'As a... I want... so that...' : 'Only Business Analysts can edit this field'"
+              ></textarea>
             </div>
+
             <div class="form-actions">
+              <!-- Only PM or BA can save depending on your logic, usually PM saves all -->
               <button type="submit" class="save-btn">Save Changes</button>
               <button type="button" @click="isEditing = false" class="cancel-btn">Cancel</button>
             </div>
@@ -144,7 +159,7 @@
       </div>
     </div>
 
-    <!-- Create Modal -->
+    <!-- Create Modal (Only accessible by PM via the button above) -->
     <teleport to="body">
       <div v-if="showCreateModal" class="modal-overlay" @click="closeCreateModal">
         <div class="modal-content" @click.stop>
@@ -155,7 +170,6 @@
             <div class="form-grid">
               <div class="form-field">
                 <label>Project *</label>
-                <!-- FIXED: Dropdown populated from projects table -->
                 <select v-model="newTask.project" @change="handleProjectChange" required>
                   <option value="" disabled>Select project</option>
                   <option v-for="p in projects" :key="p.id" :value="p.name">
@@ -212,11 +226,6 @@
                 <label>No.Dates</label>
                 <input v-model.number="newTask.noDates" type="number" />
               </div>
-
-              <div class="form-field full-width">
-                <label>User Story</label>
-                <textarea v-model="newTask.userStory" rows="6"></textarea>
-              </div>
             </div>
 
             <div class="modal-actions">
@@ -236,6 +245,16 @@ import axios from 'axios';
 
 const router = useRouter();
 const userRole = ref<string>('');
+
+// ROLE LOGIC
+const isProjectManager = computed(() => {
+  return userRole.value.toLowerCase().trim() === 'project manager';
+});
+
+const isBusinessAnalyst = computed(() => {
+  return userRole.value.toLowerCase().trim() === 'business analyst';
+});
+
 const projects = ref<any[]>([]);
 const selectedProject = ref<string | null>(null);
 const tasks = ref<any[]>([]);
@@ -254,7 +273,6 @@ const currentTask = reactive({
   userStory: '', assignee: '', role: '', sprint: null as number | null, noDates: 0
 });
 
-// Computed filtering logic
 const filteredTasks = computed(() => {
   if (!selectedProject.value) return tasks.value;
   return tasks.value.filter(t => t.project === selectedProject.value);
@@ -265,10 +283,8 @@ const truncateText = (text: string | undefined) => {
   return text.length > 40 ? text.substring(0, 40) + '...' : text;
 };
 
-// Selection handler
 const selectProject = (projectName: string | null) => {
   selectedProject.value = projectName;
-  // Option: Fetch tasks specifically for this project from backend
   fetchTasks();
 };
 
@@ -278,11 +294,10 @@ const fetchProjects = async () => {
     if (!userStr) return;
     const user = JSON.parse(userStr);
     
-    // We must send the role so the backend knows to unlock the list
     const res = await axios.get('http://localhost:3000/api/projects', {
       params: {
         userId: user.id,
-        role: user.role, // This is key!
+        role: user.role,
         userName: user.name
       }
     });
@@ -298,7 +313,6 @@ const fetchProjects = async () => {
 const fetchTasks = async () => {
   isLoading.value = true;
   try {
-    // Backend supports ?project= filter
     const params = selectedProject.value ? { project: selectedProject.value } : {};
     const res = await axios.get('http://localhost:3000/api/tasks', { params });
     if (res.data.success) {
@@ -331,6 +345,9 @@ const handleProjectChange = () => {
 };
 
 const openCreateModal = () => {
+  // Guard for safety, though button is hidden for non-PMs
+  if (!isProjectManager.value) return;
+  
   newTask.project = selectedProject.value || '';
   handleProjectChange();
   showCreateModal.value = true;
@@ -352,7 +369,7 @@ const confirmCreate = async () => {
   try {
     const res = await axios.post('http://localhost:3000/api/tasks', newTask);
     if (res.data.success) {
-      alert('Task created!');
+      alert('Task created successfully!');
       await fetchTasks();
       closeCreateModal();
     }
@@ -393,4 +410,12 @@ onMounted(async () => {
 });
 </script>
 
+<style scoped src="./TaskManager.css"></style>
+<style scoped>
+.readonly {
+  background-color: #f1f3f5;
+  cursor: not-allowed;
+  border: 1px solid #ced4da;
+}
+</style>
 <style scoped src="./TaskManager.css"></style>

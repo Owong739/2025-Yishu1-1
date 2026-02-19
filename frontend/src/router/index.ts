@@ -21,6 +21,16 @@ const router = createRouter({
   history: createWebHistory(),
 
   routes: [
+     // UPDATED ROUTE: Allow multiple roles
+    { 
+      path: '/task-manager', 
+      name: 'TaskManager', 
+      component: () => import('../components/TaskManager.vue'), 
+      meta: { 
+        requiresAuth: true,
+        allowedRoles: ['Project Manager', 'Business Analyst', 'Developer', 'Tester'] 
+      } 
+    },
     { path: '/', name: 'Login', component: LoginPage },
     { path: '/register', name: 'Register', component: RegisterPage },
     { path: '/main', name: 'Main', component: MainPage, meta: { requiresAuth: true } },
@@ -38,7 +48,7 @@ const router = createRouter({
 
     { path: '/supervisor/manage-accounts', name: 'SupervisorManageAccounts', component: SupervisorManageAccount, meta: { requiresRole: 'Supervisor' } },
 
-    { path: '/project-manager/taskManager', name: 'TaskManager', component: TaskManager, meta: { requiresRole: 'Project Manager' } }
+    //{ path: '/project-manager/taskManager', name: 'TaskManager', component: TaskManager, meta: { requiresRole: 'Project Manager' } }
   ]
 });
 
@@ -54,6 +64,15 @@ router.beforeEach((to, _, next) => {  // ← 用 _ 忽略 from 參數
     }
   }
 
+  //Check Role Array (For Task Manager)
+  if (to.meta.allowedRoles) {
+    const allowed = to.meta.allowedRoles as string[];
+    if (!allowed.includes(userRole || '') && userRole !== 'Admin') {
+      alert(`你沒有權限進入此頁面`);
+      return next('/main');
+    }
+  }
+  
   if (to.meta.requiresRole) {
     if (userRole !== to.meta.requiresRole && userRole !== 'Admin') {
       alert(`你沒有權限進入此頁面（需要 ${to.meta.requiresRole} 角色）`);

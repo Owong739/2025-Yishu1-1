@@ -10,27 +10,24 @@
     </header>
 
     <div class="main-layout">
-      <!-- Sidebar showing all DB projects -->
-      <aside class="sidebar">
-        <h3>Projects</h3>
-        <ul class="project-list">
-          <!-- All Projects Option -->
-          <li :class="{ active: selectedProject === null }" @click="selectProject(null)">
-            All Tasks
-          </li>
-          <!-- List from DB -->
-          <li
-            v-for="project in projects"
-            :key="project.id"
-            :class="{ active: selectedProject === project.name }"
-            @click="selectProject(project.name)"
-          >
-            {{ project.name }}
-            <span v-if="selectedProject === project.name" class="active-indicator">✓</span>
-          </li>
-          <li v-if="projects.length === 0" class="no-projects">No projects found</li>
-        </ul>
-      </aside>
+    <aside class="sidebar">
+      <h3>Projects</h3>
+      <ul class="project-list">
+        <li :class="{ active: selectedProject === null }" @click="selectProject(null)">
+          All Tasks
+        </li>
+        <li
+          v-for="project in projects"
+          :key="project.id"
+          :class="{ active: selectedProject === project.name }"
+          @click="selectProject(project.name)"
+        >
+          {{ project.name }}
+          <span v-if="selectedProject === project.name" class="active-indicator">✓</span>
+        </li>
+        <li v-if="projects.length === 0" class="no-projects">No projects found</li>
+      </ul>
+    </aside>
 
       <div class="content">
         <div v-if="isLoading" class="loading">Loading tasks...</div>
@@ -278,17 +275,19 @@ const selectProject = (projectName: string | null) => {
 const fetchProjects = async () => {
   try {
     const userStr = localStorage.getItem('user');
-    const user = userStr ? JSON.parse(userStr) : {};
+    if (!userStr) return;
+    const user = JSON.parse(userStr);
     
-    // Sending query params as your backend server.js expects role/userId/userName
+    // We must send the role so the backend knows to unlock the list
     const res = await axios.get('http://localhost:3000/api/projects', {
       params: {
         userId: user.id,
-        role: user.role,
+        role: user.role, // This is key!
         userName: user.name
       }
     });
-    if (res.data.data) {
+    
+    if (res.data.success) {
       projects.value = res.data.data;
     }
   } catch (err) {

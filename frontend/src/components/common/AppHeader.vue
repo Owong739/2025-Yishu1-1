@@ -51,7 +51,8 @@ const navItemsByRole = {
   'Project Manager': [
     { label: 'My Profile', path: '/profile/project-manager' },
     { label: 'Current Sprint', path: '/project-manager/current-sprint' },
-    { label: 'Manage Task', path: '/project-manager/taskManager' },
+    //{ label: 'Manage Task', path: '/project-manager/taskManager' },
+    { label: 'Manage Task', path: '/task-manager' },
     { label: 'Manage Project', path: '/project-manager/ProjectManager' },
     //  Lucas的 programme tracking  👇👇👇 //
     { label: 'Programme Tracking', path: '/dashboard.html' },
@@ -62,6 +63,7 @@ const navItemsByRole = {
     { label: 'User Stories', path: '/business-analyst/stories' },
     { label: 'Current Sprint', path: '/business-analyst/current-sprint' },
     { label: 'My Tasks', path: '/business-analyst/my-tasks' },
+    { label: 'Manage Task', path: '/task-manager' },
    
   ],
   'Developer': [
@@ -69,7 +71,7 @@ const navItemsByRole = {
     { label: 'My Tasks', path: '/developer/my-tasks' },
     { label: 'Current Sprint', path: '/developer/current-sprint' },
     { label: 'My Team', path: '/developer/my-team' },
-    
+    { label: 'Manage Task', path: '/task-manager' },
   ],
   'Tester': [
     { label: 'My Profile', path: '/profile/tester' },
@@ -77,6 +79,7 @@ const navItemsByRole = {
     { label: 'Current Sprint Tasks', path: '/tester/current-sprint-tasks' },
     { label: 'Submit Bug', path: '/tester/bug-report' },
     { label: 'My Team', path: '/tester/my-team' },
+    { label: 'Manage Task', path: '/task-manager' },
    
   ],
   'UAT User': [

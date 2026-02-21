@@ -209,9 +209,14 @@ app.get('/api/projects', (req, res) => {
   let sql = "";
   let params = [];
 
-  if (role === 'Admin') {
-    sql = "SELECT * FROM projects";
+  // FIX: Allow Admin, PM, BA, Developer, and Tester to see ALL projects 
+  // so they can use the sidebar to search/filter tasks.
+  const authorizedRoles = ['Admin', 'Project Manager', 'Business Analyst', 'Developer', 'Tester'];
+
+  if (authorizedRoles.includes(role)) {
+    sql = "SELECT * FROM projects"; 
   } else {
+    // For any other roles, maintain strict security
     sql = `
       SELECT DISTINCT p.* 
       FROM projects p
@@ -223,7 +228,7 @@ app.get('/api/projects', (req, res) => {
 
   db.query(sql, params, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ data: results });
+    res.json({ success: true, data: results });
   });
 });
 

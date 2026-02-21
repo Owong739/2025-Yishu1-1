@@ -1,11 +1,13 @@
 /* ====================== 基礎佈局 ====================== */
 .container {
   font-family: Arial, Helvetica, sans-serif;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
+  /* 修改這裡：讓寬度變為 100% */
+  max-width: 100%; 
+  margin: 0; /* 移除居中，讓它從最左開始 */
+  padding: 20px; /* 如果想讓 table 貼齊最右邊，可以改成 padding: 20px 0 20px 20px; */
   background: white;
   min-height: 100vh;
+  box-sizing: border-box; /* 確保 padding 不會撐破寬度 */
 }
 
 /* ====================== Header ====================== */
@@ -57,7 +59,7 @@
   background: white;
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
   border-radius: 8px;
-  overflow: hidden;
+  table-layout: auto; 
 }
 
 .task-table th,

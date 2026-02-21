@@ -674,7 +674,7 @@ app.post('/api/tasks', (req, res) => {
   });
 });
 
-// Update Task API
+//  Update Task API
 app.put('/api/tasks/:id', (req, res) => {
   const taskId = req.params.id;
   const { 
@@ -685,14 +685,16 @@ app.put('/api/tasks/:id', (req, res) => {
     userStory, 
     assignee, 
     role, 
-    sprint,    // Get from body
-    noDates    // Get from body
+    sprint,    
+    noDates,
+    codeUrl,   
+    testCase   
   } = req.body;
 
-  // Updated SQL: Added sprint = ? and noDates = ?
   const query = `
     UPDATE task_manager
-    SET project = ?, title = ?, status = ?, priority = ?, userStory = ?, assignee = ?, role = ?, sprint = ?, noDates = ?
+    SET project = ?, title = ?, status = ?, priority = ?, userStory = ?, 
+        assignee = ?, role = ?, sprint = ?, noDates = ?, codeUrl = ?, testCase = ?
     WHERE id = ?
   `;
 
@@ -704,13 +706,15 @@ app.put('/api/tasks/:id', (req, res) => {
     userStory || null,
     assignee || null,
     role || null,
-    sprint ? parseInt(sprint) : null, // Handle INT
-    noDates ? parseInt(noDates) : 0,  // Handle INT
+    sprint ? parseInt(sprint) : null,
+    noDates ? parseInt(noDates) : 0,
+    codeUrl || null,
+    testCase || null,
     taskId
   ], (err, result) => {
     if (err) {
       console.error('update task fail:', err);
-      return res.status(500).json({ success: false, error: 'update task fail: ' + err.message });
+      return res.status(500).json({ success: false, error: err.message });
     }
 
     res.json({

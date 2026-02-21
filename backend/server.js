@@ -754,6 +754,50 @@ app.post('/api/projects/:id/members', (req, res) => {
   });
 });
 
+// server.js 刪除專案成員 + 發送通知
+app.delete('/api/projects/:projectId/members/:userId', (req, res) => {
+  const { projectId, userId } = req.params;
+
+  // 1. 先搵返個 Project 名（用嚟話比 User 聽佢喺邊個 Project 比人 Remove 咗）
+  db.query("SELECT name FROM projects WHERE id = ?", [projectId], (err, proj) => {
+    if (err || proj.length === 0) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    const projectName = proj[0].name;
+
+    // 2. 執行刪除成員
+    const sqlDelete = "DELETE FROM project_members WHERE project_id = ? AND user_id = ?";
+    db.query(sqlDelete, [projectId, userId], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "User not found in this project" });
+      }
+
+      // 3. 準備通知訊息
+      const msg = `You have been removed from project: ${projectName}`;
+
+      // 4. 寫入 notifications 資料庫
+      db.query("INSERT INTO notifications (user_id, message) VALUES (?, ?)", [userId, msg], (err, noti) => {
+        if (err) {
+          console.error("Remove Notification DB Error:", err);
+        } else {
+          // 5. 【重點】即時用 Socket 射比嗰個被刪除嘅 User
+          console.log(`發送被刪除通知給 user_${userId}`);
+          io.to(`user_${userId}`).emit('newNotification', {
+            id: noti.insertId,
+            message: msg,
+            created_at: new Date()
+          });
+        }
+
+        // 最後先回傳結果比發起刪除請求的人（PM/Admin）
+        res.json({ success: true, message: "Member removed and notified" });
+      });
+    });
+  });
+});
+
 
 // ==========================================
 // 👇👇👇 Lucas的 Dashboard 专用接口 (已改名) 👇👇👇

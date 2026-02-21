@@ -114,8 +114,30 @@
             <span class="member-name">{{ member.name }}</span>
             <span class="member-role">{{ member.role }}</span>
           </div>
+          
+          <!-- 只有 PM 或 Admin 可以刪除人，且不能刪除自己（可選） -->
+          <button 
+            v-if="canEdit" 
+            @click="confirmDeleteMember(member)" 
+            class="delete-member-btn"
+            title="Remove Member"
+          >
+            ×
+          </button>
         </div>
       </div>
+
+      <div v-if="showDeleteModal" class="modal-overlay">
+        <div class="modal-content">
+          <h3>Confirm Removal</h3>
+          <p>Are you sure you want to remove <strong>{{ memberToDelete?.name }}</strong> from this project?</p>
+          <div class="modal-actions">
+            <button @click="executeDelete" class="confirm-del-btn">Remove</button>
+            <button @click="showDeleteModal = false" class="cancel-del-btn">Cancel</button>
+          </div>
+        </div>
+      </div>
+
       <div class="chat-section">
       <h2>Project Chat</h2>
       <div class="chat-window" ref="chatWindow">
@@ -162,6 +184,36 @@ const currentUserRole = currentUser.role;
 
 const isEditing = ref(false);
 const isAdmin = computed(() => currentUserRole === 'Admin');
+
+const showDeleteModal = ref(false);
+const memberToDelete = ref<any>(null);
+
+// 1. 彈出確認視窗
+const confirmDeleteMember = (member: any) => {
+  memberToDelete.value = member;
+  showDeleteModal.value = true;
+};
+
+// 2. 執行刪除
+const executeDelete = async () => {
+  if (!memberToDelete.value) return;
+  
+  try {
+    const projectId = route.params.id;
+    const userId = memberToDelete.value.id;
+    
+    await axios.delete(`http://localhost:3000/api/projects/${projectId}/members/${userId}`);
+    
+    // 重新整理列表
+    await fetchMembers();
+    showDeleteModal.value = false;
+    memberToDelete.value = null;
+    
+  } catch (error) {
+    console.error('Delete member error:', error);
+    alert('Failed to remove member');
+  }
+};
 
 const editForm = ref({
   name: '',
@@ -644,6 +696,81 @@ select {
   background: #42b983;
   color: white;
   border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.member-item {
+  position: relative; /* 方便定位刪除按鈕 */
+  padding-right: 2.5rem; /* 留位置給按鈕 */
+}
+
+.delete-member-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.delete-member-btn:hover {
+  opacity: 1;
+}
+
+/* Modal 樣式 */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.confirm-del-btn {
+  flex: 1;
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-del-btn {
+  flex: 1;
+  background: #ccc;
+  border: none;
+  padding: 0.8rem;
   border-radius: 4px;
   cursor: pointer;
 }

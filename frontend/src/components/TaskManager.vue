@@ -48,7 +48,7 @@
               <th>Role</th>
               <th>Sprint</th>
               <th>No.Dates</th>
-              <th>User Story</th> <!-- Added Header -->
+              <th>User Story</th> 
               <th>Code URL</th>
               <th>Test Case</th>
               <th>Action</th>

@@ -17,6 +17,7 @@ const passwordForm = ref({ currentPassword: '', newPassword: '', confirmPassword
 
 // My Tasks
 const tasks = ref([])
+const currentTaskIndex = ref(0)
 
 // My Teams & My Sprints（implement late）
 const teams = ref([])
@@ -131,27 +132,72 @@ const logout = () => {
     </div>
 
     <!-- My Tasks -->
-    <div class="section">
+<div class="section">
   <h2>My Tasks</h2>
-  <div v-for="task in tasks" :key="task.id" class="task-item">
-    <div>ID: {{ task.id }}</div>
-    <div>Project: {{ task.project }}</div>
-    <div>Title: {{ task.title }}</div>
-    <div>Status: {{ task.status }}</div>
-    <div>Priority: {{ task.priority }}</div>
-    <div>Assignee: {{ task.assignee || '-' }}</div>
-    <div>Role: {{ task.role || '-' }}</div>
-    <div>Due Date: {{ task.dueDate || '-' }}</div>
 
-    <div class="user-story-section">
-      <strong>User Story:</strong>
-      <div v-if="task.userStory" class="user-story-content">
-        <pre>{{ task.userStory }}</pre>  <!-- 用 pre 保留換行與空格 -->
+  <div v-if="tasks.length === 0">
+    No tasks assigned yet.
+  </div>
+
+  <div v-else class="task-carousel">
+    <!-- 目前顯示的 task 索引 -->
+    <div class="task-navigation">
+      <button 
+        class="btn-nav" 
+        :disabled="currentTaskIndex === 0" 
+        @click="currentTaskIndex--"
+      >
+        ← Previous
+      </button>
+
+      <span class="task-counter">
+        Task {{ currentTaskIndex + 1 }} / {{ tasks.length }}
+      </span>
+
+      <button 
+        class="btn-nav" 
+        :disabled="currentTaskIndex === tasks.length - 1" 
+        @click="currentTaskIndex++"
+      >
+        Next →
+      </button>
+    </div>
+
+    <!-- 顯示當前 task 的詳細資訊 -->
+    <div class="task-detail" v-if="tasks[currentTaskIndex]">
+      <div class="info-row">
+        <strong>ID:</strong> {{ tasks[currentTaskIndex].id }}
       </div>
-      <div v-else class="no-story">No User Story</div>
+      <div class="info-row">
+        <strong>Project:</strong> {{ tasks[currentTaskIndex].project || '-' }}
+      </div>
+      <div class="info-row">
+        <strong>Title:</strong> {{ tasks[currentTaskIndex].title || '-' }}
+      </div>
+      <div class="info-row">
+        <strong>Status:</strong> {{ tasks[currentTaskIndex].status || '-' }}
+      </div>
+      <div class="info-row">
+        <strong>Priority:</strong> {{ tasks[currentTaskIndex].priority || '-' }}
+      </div>
+      <div class="info-row">
+        <strong>Assignee:</strong> {{ tasks[currentTaskIndex].assignee || '-' }}
+      </div>
+      <div class="info-row">
+        <strong>Role:</strong> {{ tasks[currentTaskIndex].role || '-' }}
+      </div>
+      <div class="info-row">
+        <strong>Due Date:</strong> {{ tasks[currentTaskIndex].dueDate || '-' }}
+      </div>
+      <div class="user-story-section">
+        <strong>User Story:</strong>
+        <div v-if="tasks[currentTaskIndex].userStory" class="user-story-content">
+          <pre>{{ tasks[currentTaskIndex].userStory }}</pre>
+        </div>
+        <div v-else class="no-story">No User Story</div>
+      </div>
     </div>
   </div>
-  <div v-if="tasks.length === 0">No tasks</div>
 </div>
 
     <!-- <div class="section">
@@ -235,4 +281,48 @@ h2 { margin-bottom: 1rem; color: #1e293b; }
 .modal-actions { display: flex; gap: 1rem; }
 .btn-submit { background: #3b82f6; color: white; flex: 1; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; }
 .btn-cancel { background: #e5e7eb; color: #374151; flex: 1; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; }
+.task-carousel {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.task-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.btn-nav {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-nav:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.task-counter {
+  font-weight: bold;
+  color: #1e293b;
+}
+
+.task-detail .info-row {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.task-detail .info-row strong {
+  display: inline-block;
+  width: 140px;
+  color: #334155;
+}
 </style>

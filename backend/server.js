@@ -425,53 +425,52 @@ app.post('/api/users', (req, res) => {
 
 // Modify current user password
 app.post('/api/users/change-password', (req, res) => {
-  console.log('Change Password request received');
+  console.log('收到更改密碼請求:', req.body);
 
-  const token = 
-  req.headers.authorization?.split(' ')[1];
-  console.log('Token:', token);
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token || !token.startsWith('dummy-token-')) {
+    return res.status(401).json({ message: 'Invalid or missing token' });
+  }
 
-  if (!token) return res.status(401).json({ message: 'No token provided' });
+  const userId = token.split('-')[2];
+  if (!userId || isNaN(userId)) {
+    return res.status(403).json({ message: 'Invalid token' });
+  }
 
   const { currentPassword, newPassword } = req.body;
-  console.log('Received currentPassword:', currentPassword);
-  console.log('Received newPassword:', newPassword);
 
-  if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Please fill in all the field' });
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Missing password fields' });
+  }
 
-  // Get userId from token
-  if (!token.startsWith('dummy-token-')) return res.status(403).json({ message: 'Invalid token format' });
-  const userId = token.split('-')[2];
-  if (!userId || isNaN(userId)) return res.status(403).json({ message: 'Invalid token' });
-
-  const checkQuery = 'SELECT password FROM users WHERE id = ?';
-  db.query(checkQuery, [userId], (err, results) => {
+  // 查詢舊密碼
+  const selectQuery = 'SELECT password FROM users WHERE id = ?';
+  db.query(selectQuery, [userId], (err, results) => {
     if (err) {
-      console.error('query old password fail:', err);
-      return res.status(500).json({ message: 'query fail' });
-    }
-    if (results.length === 0) return res.status(404).json({ message: 'User not found' });
-
-    // Use trim to reduce space issue
-    const dbPassword = (results[0].password || '').trim();
-    const inputCurrent = (currentPassword || '').trim();
-
-    console.log('DB password (trimmed):', dbPassword);
-    console.log('Input current (trimmed):', inputCurrent);
-
-    if (dbPassword !== inputCurrent) {
-      console.log('old password unmatch');
-      return res.status(401).json({ message: 'current password invalid' });
+      console.error('查詢密碼錯誤:', err);
+      return res.status(500).json({ message: 'Server error' });
     }
 
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const storedPassword = results[0].password;
+
+    if (storedPassword !== currentPassword) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // 更新新密碼（這裡用 newPassword 或 trimmedNew）
     const updateQuery = 'UPDATE users SET password = ? WHERE id = ?';
-    db.query(updateQuery, [trimmedNew, userId], (err) => {
-      if (err) {
-        console.error('update password fail:', err);
-        return res.status(500).json({ message: 'update fail' });
+    db.query(updateQuery, [newPassword, userId], (updateErr) => {
+      if (updateErr) {
+        console.error('更新密碼錯誤:', updateErr);
+        return res.status(500).json({ message: 'Failed to update password' });
       }
-      console.log('update password successful，userId:', userId);
-      res.json({ message: 'update password successful' });
+
+      console.log('密碼更新成功 for user ID:', userId);
+      res.json({ message: 'Password updated successfully' });
     });
   });
 });

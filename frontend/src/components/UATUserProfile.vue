@@ -155,19 +155,16 @@ const logout = () => {
   <div v-if="tasks.length === 0">No tasks</div>
 </div>
 
-    <!-- My Teams -->
+    <!-- My Teams
     <div class="section">
       <h2>My Teams</h2>
       <div v-if="teams.length === 0">No teams yet</div>
-      <!-- Teams in future -->
     </div>
 
-    <!-- My Sprints -->
     <div class="section">
       <h2>My Sprints</h2>
       <div v-if="sprints.length === 0">No sprints yet</div>
-      <!-- Sprint in future -->
-    </div>
+    </div> -->
 
     <!-- Change Password Modal -->
     <div v-if="showChangePasswordModal" class="modal-overlay" @click="closeChangePasswordModal">

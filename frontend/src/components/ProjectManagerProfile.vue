@@ -127,7 +127,6 @@ const logout = () => {
         </div>
         <button class="btn" @click="openChangePasswordModal">Change Password</button>
       </div>
-      <button class="btn" @click="openChangePasswordModal">Change Password</button>
       <!-- <button class="btn" @click="openEditModal">Edit</button> -->
     </div>
 
@@ -155,19 +154,15 @@ const logout = () => {
   <div v-if="tasks.length === 0">No tasks</div>
 </div>
 
-    <!-- My Teams （保留區塊，暫時空內容） -->
-    <div class="section">
+    <!-- <div class="section">
       <h2>My Teams</h2>
       <div v-if="teams.length === 0">No teams yet</div>
-      <!-- 未來取消註解後，這裡會顯示 teams 列表 -->
     </div>
 
-    <!-- My Sprints （保留區塊，暫時空內容） -->
     <div class="section">
       <h2>My Sprints</h2>
       <div v-if="sprints.length === 0">No sprints yet</div>
-      <!-- 未來取消註解後，這裡會顯示 sprints 列表 -->
-    </div>
+    </div> -->
 
     <!-- Change Password Modal -->
     <div v-if="showChangePasswordModal" class="modal-overlay" @click="closeChangePasswordModal">

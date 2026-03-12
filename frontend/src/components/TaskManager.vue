@@ -258,14 +258,31 @@ const currentTask = reactive({
   codeUrl: '', testCase: ''
 });
 
-const getStatusClass = (status: string) => {
-  if (!status) return '';
-  const s = status.toLowerCase();
+const getStatusClass = (status: string | null | undefined) => {
+  const s = (status || '').toString().trim().toLowerCase();
+
+  // explicit map for exact matches
+  const map: Record<string, string> = {
+    'backlog': 'status-backlog',
+    'dev': 'status-dev',
+    'development': 'status-dev',
+    'sit': 'status-sit',
+    'uat': 'status-uat',
+    'test': 'status-test',
+    'testing': 'status-test',
+    'done': 'status-complete',
+    'complete': 'status-complete'
+  };
+
+  if (map[s]) return map[s];
+
+  // fallback to includes
   if (s.includes('dev')) return 'status-dev';
-  if (s.includes('ba')) return 'status-ba';
-  if (s.includes('test')) return 'status-test';
+  if (s.includes('sit')) return 'status-sit';
   if (s.includes('uat')) return 'status-uat';
-  if (s.includes('complete')) return 'status-complete';
+  if (s.includes('test')) return 'status-test';
+  if (s.includes('done') || s.includes('complete')) return 'status-complete';
+
   return '';
 };
 
@@ -390,11 +407,17 @@ onMounted(async () => {
 .readonly { background-color: #f1f3f5; cursor: not-allowed; border: 1px solid #ced4da; }
 .form-grid-pm { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
 .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; color: white; display: inline-block; }
+
+/* status colors */
 .status-dev { background-color: #3498db; }
 .status-ba { background-color: #9b59b6; }
-.status-test { background-color: #e67e22; }
+.status-test { background-color: #e67e22; color: #fff; }
 .status-uat { background-color: #1abc9c; }
+.status-sit { background-color: #f39c12; } /* added for SIT */
 .status-complete { background-color: #27ae60; }
+/* backlog */
+.status-backlog { background-color: #6c757d; color: #fff; }
+
 .prio-high { background-color: #e74c3c; }
 .prio-med { background-color: #f1c40f; color: #333; }
 .prio-low { background-color: #95a5a6; }

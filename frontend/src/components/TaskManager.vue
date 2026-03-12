@@ -108,11 +108,11 @@
                   <div class="form-field">
                       <label>Status</label>
                       <select v-model="currentTask.status" :disabled="!isProjectManager">
-                        <option>dev(developer)</option>
-                        <option>BA(Business Analyst)</option>
-                        <option>test(tester)</option>
-                        <option>uat(UAT user)</option>
-                        <option>complete</option>
+                        <option>Backlog</option>
+                        <option>Dev</option>
+                        <option>SIT</option>
+                        <option>UAT</option>
+                        <option>Done</option>
                       </select>
                   </div>
                   <div class="form-field">
@@ -187,11 +187,11 @@
               <div class="form-field">
                 <label>Status</label>
                 <select v-model="newTask.status">
-                  <option>dev(developer)</option>
-                  <option>BA(Business Analyst)</option>
-                  <option>test(tester)</option>
-                  <option>uat(UAT user)</option>
-                  <option>complete</option>
+                  <option>Backlog</option>
+                  <option>Dev</option>
+                  <option>SIT</option>
+                  <option>UAT</option>
+                  <option>Done</option>
                 </select>
               </div>
               <div class="form-field">

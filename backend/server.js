@@ -203,20 +203,28 @@ app.get('/api/users', (req, res) => {
 });
 
 // 2. Get project list API
+// backend/server.js - Update the Project List API
 app.get('/api/projects', (req, res) => {
   const { userId, role, userName } = req.query; 
 
   let sql = "";
   let params = [];
 
-  // FIX: Allow Admin, PM, BA, Developer, and Tester to see ALL projects 
-  // so they can use the sidebar to search/filter tasks.
-  const authorizedRoles = ['Admin', 'Project Manager', 'Business Analyst', 'Developer', 'Tester'];
+  // UPDATED: Added 'UAT User' to the authorized list
+  const authorizedRoles = [
+    'Admin', 
+    'Project Manager', 
+    'Business Analyst', 
+    'Developer', 
+    'Tester', 
+    'UAT User'
+  ];
 
   if (authorizedRoles.includes(role)) {
+    // These roles can see all projects to use the "Search/Filter" sidebar
     sql = "SELECT * FROM projects"; 
   } else {
-    // For any other roles, maintain strict security
+    // Other roles only see projects they are explicitly members of
     sql = `
       SELECT DISTINCT p.* 
       FROM projects p

@@ -3,6 +3,7 @@
     <header class="header">
       <div class="title-wrapper">
         <h1>Task Manager</h1>
+        <!-- 只有 PM 可以看到建立按鈕 -->
         <button 
           v-if="isProjectManager" 
           @click="openCreateModal" 
@@ -107,13 +108,13 @@
                   </div>
                   <div class="form-field">
                       <label>Status</label>
-                      <!-- When status changes, we might need to filter assignees -->
-                      <select v-model="currentTask.status" :disabled="!isProjectManager" @change="onEditStatusChange">
-                        <option>Backlog</option>
-                        <option>Dev</option>
-                        <option>SIT</option>
-                        <option>UAT</option>
-                        <option>Done</option>
+                      <!-- UAT User 權限控制：只有 PM 或 (當前是 UAT 狀態且角色是 UAT User) 時才可點擊 -->
+                      <select 
+                        v-model="currentTask.status" 
+                        :disabled="isStatusDisabled" 
+                        @change="onEditStatusChange"
+                      >
+                        <option v-for="opt in availableStatusOptions" :key="opt">{{ opt }}</option>
                       </select>
                   </div>
                   <div class="form-field">
@@ -128,7 +129,6 @@
                       <label>Assignee</label>
                       <select v-model="currentTask.assignee" @change="autoFillRoleEdit" :disabled="!isProjectManager">
                         <option value="">- Select -</option>
-                        <!-- DYNAMIC FILTERED LIST -->
                         <option v-for="u in filteredAssigneesEdit" :key="u.id" :value="u.name">{{ u.name }}</option>
                       </select>
                   </div>
@@ -162,7 +162,8 @@
                 </div>
                 <br>
                 <div class="form-actions">
-                  <button type="submit" class="save-btn">Save Changes</button>
+                  <!-- 所有能編輯的角色都要能存檔 -->
+                  <button v-if="canUserSave" type="submit" class="save-btn">Save Changes</button>
                   <button type="button" @click="isEditing = false" class="cancel-btn">Close</button>
                 </div>
             </form>
@@ -170,7 +171,7 @@
       </div>
     </div>
     
-    <!-- Create Modal -->
+    <!-- Create Modal (PM Only) -->
     <teleport to="body">
       <div v-if="showCreateModal" class="modal-overlay" @click="closeCreateModal">
         <div class="modal-content" @click.stop>
@@ -201,7 +202,6 @@
                 <label>Assignee</label>
                 <select v-model="newTask.assignee" @change="autoFillRoleCreate">
                   <option value="">- Select -</option>
-                  <!-- DYNAMIC FILTERED LIST -->
                   <option v-for="u in filteredAssigneesCreate" :key="u.id" :value="u.name">{{ u.name }}</option>
                 </select>
               </div>
@@ -238,6 +238,7 @@ const isProjectManager = computed(() => userRole.value.toLowerCase().trim() === 
 const isBusinessAnalyst = computed(() => userRole.value.toLowerCase().trim() === 'business analyst');
 const isDeveloper = computed(() => userRole.value.toLowerCase().trim() === 'developer');
 const isTester = computed(() => userRole.value.toLowerCase().trim() === 'tester');
+const isUATUser = computed(() => userRole.value.toLowerCase().trim() === 'uat user');
 
 const projects = ref<any[]>([]);
 const selectedProject = ref<string | null>(null);
@@ -247,15 +248,45 @@ const availableUsers = ref<any[]>([]);
 const showCreateModal = ref(false);
 const isEditing = ref(false);
 
+// 保存當前任務原始狀態，用於判斷 UAT 權限
+const originalStatus = ref('');
+
 /**
- * NEW LOGIC: Dynamic Assignee Filtering based on Status
+ * UAT USER 權限邏輯
+ */
+const isStatusDisabled = computed(() => {
+  if (isProjectManager.value) return false;
+  // 如果是 UAT User，且當前狀態是 UAT，則不禁用（允許切換到 Done）
+  if (isUATUser.value && originalStatus.value === 'UAT') return false;
+  return true;
+});
+
+const availableStatusOptions = computed(() => {
+  const all = ['Backlog', 'Dev', 'SIT', 'UAT', 'Done'];
+  // 如果是 UAT User，限制只能選 UAT 或 Done
+  if (isUATUser.value && !isProjectManager.value) {
+    return ['UAT', 'Done'];
+  }
+  return all;
+});
+
+const canUserSave = computed(() => {
+  if (isProjectManager.value) return true;
+  if (isBusinessAnalyst.value || isDeveloper.value || isTester.value) return true;
+  // UAT User 只有在原始狀態是 UAT 時才能存檔
+  if (isUATUser.value && originalStatus.value === 'UAT') return true;
+  return false;
+});
+
+/**
+ * 分派人員過濾邏輯
  */
 const statusToRoleMap: Record<string, string | null> = {
   'Backlog': 'Business Analyst',
   'Dev': 'Developer',
   'SIT': 'Tester',
   'UAT': 'UAT User',
-  'Done': null // If Done, typically can be anyone (except Admin)
+  'Done': null
 };
 
 const filteredAssigneesCreate = computed(() => {
@@ -276,11 +307,14 @@ const onCreateStatusChange = () => {
 };
 
 const onEditStatusChange = () => {
+  // 如果 UAT 使用者嘗試切換回 UAT (如果不小心點到)，不清除。
+  // 但通常是切換到 Done。
+  if (isUATUser.value) return; 
   currentTask.assignee = '';
   currentTask.role = '';
 };
 
-// --- REST OF THE CODE ---
+// --- 基礎數據對象 ---
 
 const newTask = reactive({
   project: '', title: '', status: 'Backlog', priority: 'Medium',
@@ -385,6 +419,7 @@ const closeCreateModal = () => { showCreateModal.value = false; };
 
 const editTask = (task: any) => {
   Object.assign(currentTask, task);
+  originalStatus.value = task.status; // 記錄原始狀態
   currentTask.userStory = task.userStory || '';
   currentTask.codeUrl = task.codeUrl || '';
   currentTask.testCase = task.testCase || '';
@@ -424,6 +459,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* 樣式保持不變，包含之前定義的狀態顏色 */
 .modal-content h2.modal-title {
   text-align: center;
   margin: 24px 0 20px 0;

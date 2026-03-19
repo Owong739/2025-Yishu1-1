@@ -28,7 +28,7 @@ const router = createRouter({
       component: () => import('../components/TaskManager.vue'), 
       meta: { 
         requiresAuth: true,
-        allowedRoles: ['Project Manager', 'Business Analyst', 'Developer', 'Tester'] 
+          meta: { allowedRoles: ['Project Manager', 'Business Analyst', 'Developer', 'Tester', 'UAT User'] } 
       } 
     },
     { path: '/', name: 'Login', component: LoginPage },

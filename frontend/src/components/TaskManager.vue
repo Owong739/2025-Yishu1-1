@@ -73,7 +73,6 @@
               <td>{{ task.role || '-' }}</td>
               <td>{{ task.sprint || '-' }}</td>
               <td>{{ task.noDates || '0' }}</td>
-              <!-- User Story with 40 character truncation -->
               <td class="truncate-cell" :title="task.userStory">
                 {{ truncateText(task.userStory, 40) || '-' }}
               </td>
@@ -91,6 +90,7 @@
           <p>Try selecting another project or create a new task!</p>
         </div>
 
+        <!-- Edit Form Section -->
         <div class="form-section">
             <h2 v-if="isEditing">Task Details #{{ currentTask.id }}</h2>
             <h2 v-else>Welcome to Task Manager</h2>
@@ -107,7 +107,8 @@
                   </div>
                   <div class="form-field">
                       <label>Status</label>
-                      <select v-model="currentTask.status" :disabled="!isProjectManager">
+                      <!-- When status changes, we might need to filter assignees -->
+                      <select v-model="currentTask.status" :disabled="!isProjectManager" @change="onEditStatusChange">
                         <option>Backlog</option>
                         <option>Dev</option>
                         <option>SIT</option>
@@ -127,7 +128,8 @@
                       <label>Assignee</label>
                       <select v-model="currentTask.assignee" @change="autoFillRoleEdit" :disabled="!isProjectManager">
                         <option value="">- Select -</option>
-                        <option v-for="u in filteredAssignees" :key="u.id" :value="u.name">{{ u.name }}</option>
+                        <!-- DYNAMIC FILTERED LIST -->
+                        <option v-for="u in filteredAssigneesEdit" :key="u.id" :value="u.name">{{ u.name }}</option>
                       </select>
                   </div>
                   <div class="form-field">
@@ -148,17 +150,17 @@
                   <label>User Story</label>
                   <textarea v-model="currentTask.userStory" rows="4" :readonly="!isBusinessAnalyst" :class="{ 'readonly': !isBusinessAnalyst }" :placeholder="isBusinessAnalyst ? 'Enter user story...' : 'Only Business Analyst can edit this field'"></textarea>
                 </div>
-
+                <br>
                 <div class="form-field full-width">
-                  <label>Project Code URL</label>
+                  <label>Project URL</label>
                   <textarea v-model="currentTask.codeUrl" rows="2" :readonly="!isDeveloper" :class="{ 'readonly': !isDeveloper }" :placeholder="isDeveloper ? 'Enter code link...' : 'Only Developer can edit this field'"></textarea>
                 </div>
-
+                <br>
                 <div class="form-field full-width">
                   <label>Test Case</label>
                   <textarea v-model="currentTask.testCase" rows="4" :readonly="!isTester" :class="{ 'readonly': !isTester }" :placeholder="isTester ? 'Enter test cases...' : 'Only Tester can edit this field'"></textarea>
                 </div>
-
+                <br>
                 <div class="form-actions">
                   <button type="submit" class="save-btn">Save Changes</button>
                   <button type="button" @click="isEditing = false" class="cancel-btn">Close</button>
@@ -168,10 +170,11 @@
       </div>
     </div>
     
+    <!-- Create Modal -->
     <teleport to="body">
       <div v-if="showCreateModal" class="modal-overlay" @click="closeCreateModal">
         <div class="modal-content" @click.stop>
-          <h2>Create New Task</h2>
+          <h2 class="modal-title">Create New Task</h2>
           <form @submit.prevent="confirmCreate">
             <div class="form-grid">
               <div class="form-field">
@@ -186,7 +189,7 @@
               </div>
               <div class="form-field">
                 <label>Status</label>
-                <select v-model="newTask.status">
+                <select v-model="newTask.status" @change="onCreateStatusChange">
                   <option>Backlog</option>
                   <option>Dev</option>
                   <option>SIT</option>
@@ -198,7 +201,8 @@
                 <label>Assignee</label>
                 <select v-model="newTask.assignee" @change="autoFillRoleCreate">
                   <option value="">- Select -</option>
-                  <option v-for="u in filteredAssignees" :key="u.id" :value="u.name">{{ u.name }}</option>
+                  <!-- DYNAMIC FILTERED LIST -->
+                  <option v-for="u in filteredAssigneesCreate" :key="u.id" :value="u.name">{{ u.name }}</option>
                 </select>
               </div>
               <div class="form-field">
@@ -210,6 +214,7 @@
                 <input v-model.number="newTask.sprint" type="number" readonly class="readonly" />
               </div>
             </div>
+            <br>
             <div class="modal-actions">
               <button type="submit" class="confirm-btn">Create Task</button>
             </div>
@@ -228,7 +233,7 @@ import axios from 'axios';
 const router = useRouter();
 const userRole = ref<string>('');
 
-// ROLE LOGIC
+// --- ROLE LOGIC ---
 const isProjectManager = computed(() => userRole.value.toLowerCase().trim() === 'project manager');
 const isBusinessAnalyst = computed(() => userRole.value.toLowerCase().trim() === 'business analyst');
 const isDeveloper = computed(() => userRole.value.toLowerCase().trim() === 'developer');
@@ -242,12 +247,43 @@ const availableUsers = ref<any[]>([]);
 const showCreateModal = ref(false);
 const isEditing = ref(false);
 
-const filteredAssignees = computed(() => {
-  return availableUsers.value.filter(u => u.role !== 'Admin');
+/**
+ * NEW LOGIC: Dynamic Assignee Filtering based on Status
+ */
+const statusToRoleMap: Record<string, string | null> = {
+  'Backlog': 'Business Analyst',
+  'Dev': 'Developer',
+  'SIT': 'Tester',
+  'UAT': 'UAT User',
+  'Done': null // If Done, typically can be anyone (except Admin)
+};
+
+const filteredAssigneesCreate = computed(() => {
+  const targetRole = statusToRoleMap[newTask.status];
+  if (!targetRole) return availableUsers.value.filter(u => u.role !== 'Admin');
+  return availableUsers.value.filter(u => u.role === targetRole);
 });
 
+const filteredAssigneesEdit = computed(() => {
+  const targetRole = statusToRoleMap[currentTask.status];
+  if (!targetRole) return availableUsers.value.filter(u => u.role !== 'Admin');
+  return availableUsers.value.filter(u => u.role === targetRole);
+});
+
+const onCreateStatusChange = () => {
+  newTask.assignee = '';
+  newTask.role = '';
+};
+
+const onEditStatusChange = () => {
+  currentTask.assignee = '';
+  currentTask.role = '';
+};
+
+// --- REST OF THE CODE ---
+
 const newTask = reactive({
-  project: '', title: '', status: 'dev(developer)', priority: 'Medium',
+  project: '', title: '', status: 'Backlog', priority: 'Medium',
   userStory: '', assignee: '', role: '', sprint: null as number | null, noDates: 0,
   codeUrl: '', testCase: ''
 });
@@ -260,30 +296,14 @@ const currentTask = reactive({
 
 const getStatusClass = (status: string | null | undefined) => {
   const s = (status || '').toString().trim().toLowerCase();
-
-  // explicit map for exact matches
   const map: Record<string, string> = {
     'backlog': 'status-backlog',
     'dev': 'status-dev',
-    'development': 'status-dev',
     'sit': 'status-sit',
     'uat': 'status-uat',
-    'test': 'status-test',
-    'testing': 'status-test',
-    'done': 'status-complete',
-    'complete': 'status-complete'
+    'done': 'status-complete'
   };
-
-  if (map[s]) return map[s];
-
-  // fallback to includes
-  if (s.includes('dev')) return 'status-dev';
-  if (s.includes('sit')) return 'status-sit';
-  if (s.includes('uat')) return 'status-uat';
-  if (s.includes('test')) return 'status-test';
-  if (s.includes('done') || s.includes('complete')) return 'status-complete';
-
-  return '';
+  return map[s] || '';
 };
 
 const getPriorityClass = (priority: string) => {
@@ -300,7 +320,6 @@ const filteredTasks = computed(() => {
   return tasks.value.filter(t => t.project === selectedProject.value);
 });
 
-// Truncation function used for the table cells
 const truncateText = (text: string | undefined, length = 40) => {
   if (!text) return '';
   return text.length > length ? text.substring(0, length) + '...' : text;
@@ -357,6 +376,7 @@ const autoFillRoleEdit = () => {
 const openCreateModal = () => {
   if (!isProjectManager.value) return;
   newTask.project = selectedProject.value || '';
+  newTask.status = 'Backlog';
   handleProjectChange();
   showCreateModal.value = true;
 };
@@ -404,18 +424,25 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.modal-content h2.modal-title {
+  text-align: center;
+  margin: 24px 0 20px 0;
+  font-size: 1.85rem;
+  color: #2c3e50;
+  font-weight: 700;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
 .readonly { background-color: #f1f3f5; cursor: not-allowed; border: 1px solid #ced4da; }
 .form-grid-pm { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
 .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; color: white; display: inline-block; }
 
-/* status colors */
 .status-dev { background-color: #3498db; }
 .status-ba { background-color: #9b59b6; }
 .status-test { background-color: #e67e22; color: #fff; }
 .status-uat { background-color: #1abc9c; }
-.status-sit { background-color: #f39c12; } /* added for SIT */
+.status-sit { background-color: #f39c12; }
 .status-complete { background-color: #27ae60; }
-/* backlog */
 .status-backlog { background-color: #6c757d; color: #fff; }
 
 .prio-high { background-color: #e74c3c; }

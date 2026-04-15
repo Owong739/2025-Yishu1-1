@@ -38,7 +38,7 @@ const navItemsByRole = {
     { label: 'All Sprints', path: '/admin/sprints' },
     { label: 'All Tasks', path: '/admin/tasks' },
     { label: 'All Teams', path: '/admin/teams' },
-    { label: 'Programme Tracking', path: '/dashboard.html' },
+    { label: 'Programme Tracking', path: '/dashboard' },
     
   ],
   'Supervisor': [
@@ -47,7 +47,7 @@ const navItemsByRole = {
     { label: 'Manage Sprints', path: '/supervisor/sprints' },
     { label: 'Team Tasks', path: '/supervisor/team-tasks' },
     { label: 'My Teams', path: '/supervisor/teams' },
-    { label: 'Programme Tracking', path: '/dashboard.html' },
+    { label: 'Programme Tracking', path: '/dashboard' },
    
   ],
   'Project Manager': [
@@ -57,7 +57,7 @@ const navItemsByRole = {
     { label: 'Manage Task', path: '/task-manager' },
     { label: 'Manage Project', path: '/project-manager/ProjectManager' },
     //  Lucas的 programme tracking  👇👇👇 //
-    { label: 'Programme Tracking', path: '/dashboard.html' },
+    { label: 'Programme Tracking', path: '/dashboard' },
   ],
   'Business Analyst': [
     { label: 'My Profile', path: '/profile/business-analyst' },
@@ -66,7 +66,7 @@ const navItemsByRole = {
     { label: 'Current Sprint', path: '/business-analyst/current-sprint' },
     { label: 'My Tasks', path: '/business-analyst/my-tasks' },
     { label: 'Manage Task', path: '/task-manager' },
-    { label: 'Programme Tracking', path: '/dashboard.html' },
+    { label: 'Programme Tracking', path: '/dashboard' },
    
   ],
   'Developer': [
@@ -75,7 +75,7 @@ const navItemsByRole = {
     { label: 'Current Sprint', path: '/developer/current-sprint' },
     { label: 'My Team', path: '/developer/my-team' },
     { label: 'Manage Task', path: '/task-manager' },
-    { label: 'Programme Tracking', path: '/dashboard.html' },
+    { label: 'Programme Tracking', path: '/dashboard' },
   ],
   'Tester': [
     { label: 'My Profile', path: '/profile/tester' },
@@ -84,7 +84,7 @@ const navItemsByRole = {
     { label: 'Submit Bug', path: '/tester/bug-report' },
     { label: 'My Team', path: '/tester/my-team' },
     { label: 'Manage Task', path: '/task-manager' },
-    { label: 'Programme Tracking', path: '/dashboard.html' },
+    { label: 'Programme Tracking', path: '/dashboard' },
    
   ],
   'UAT User': [
@@ -93,7 +93,7 @@ const navItemsByRole = {
     { label: 'Current Sprint', path: '/uat/current-sprint' },
     { label: 'Feedback', path: '/uat/feedback' },
     { label: 'Manage Task', path: '/task-manager' },
-    { label: 'Programme Tracking', path: '/dashboard.html' },
+    { label: 'Programme Tracking', path: '/dashboard' },
     
   ],
   'Product Owner': [
@@ -101,7 +101,7 @@ const navItemsByRole = {
     { label: 'User Stories', path: '/product-owner/stories' },
     { label: 'Priorities', path: '/product-owner/priorities' },
     { label: 'Current Sprint', path: '/product-owner/current-sprint' },
-    { label: 'Programme Tracking', path: '/dashboard.html' },
+    { label: 'Programme Tracking', path: '/dashboard' },
   ]
 } as const
 

@@ -47,6 +47,11 @@ const router = createRouter({
     { path: '/admin/manage-accounts', name: 'AdminManageAccounts', component: AdminManageAccount, meta: { requiresRole: 'Admin' } },
 
     { path: '/supervisor/manage-accounts', name: 'SupervisorManageAccounts', component: SupervisorManageAccount, meta: { requiresRole: 'Supervisor' } },
+    {
+      path: '/dashboard',
+      name: 'Dashboard',
+      component: () => import('@/components/Dashboard.vue')   
+    }
 
     //{ path: '/project-manager/taskManager', name: 'TaskManager', component: TaskManager, meta: { requiresRole: 'Project Manager' } }
   ]

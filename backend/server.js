@@ -848,23 +848,25 @@ app.put('/api/fyp/tasks/:id/status', (req, res) => {
   });
 });
 
-// 4. 更新 Sprint (截止日期)
+// 升级版：更新 Sprint (支持改名、改状态、改日期)
 app.put('/api/fyp/sprints/:id', (req, res) => {
-  const { deadline } = req.body;
+  const { name, status, start_date, deadline } = req.body;
   const { id } = req.params;
-  db.query('UPDATE sprints SET deadline = ? WHERE id = ?', [deadline, id], (err) => {
+  const sql = 'UPDATE sprints SET name=?, status=?, start_date=?, deadline=? WHERE id=?';
+  db.query(sql,[name, status, start_date, deadline, id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Sprint updated' });
+    res.json({ message: 'Sprint updated successfully' });
   });
 });
 
-// 5. 新增任务
+// 5. 新增任务 (加入 progress 和 stage)
 app.post('/api/fyp/tasks', (req, res) => {
-  const { name, assignee, sprint_id } = req.body;
-  const sql = 'INSERT INTO tasks (name, assignee, status, sprint_id) VALUES (?, ?, "todo", ?)';
-  db.query(sql, [name, assignee, sprint_id], (err, result) => {
+  const { name, description, assignee, status, stage, priority, start_date, deadline, sprint_id, progress } = req.body;
+  const sql = 'INSERT INTO tasks (name, description, assignee, status, stage, priority, start_date, deadline, sprint_id, progress) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  
+  db.query(sql,[name, description, assignee, status || 'todo', stage || 'Analysis', priority || 'Medium', start_date, deadline, sprint_id, progress || 0], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ id: result.insertId, message: 'Task created' });
+    res.json({ id: result.insertId, message: 'Task created successfully' });
   });
 });
 
@@ -877,13 +879,24 @@ app.delete('/api/fyp/tasks/:id', (req, res) => {
   });
 });
 
-// 7. 重命名任务
+// 7. 更新任务详情 (加入 progress 和 stage)
 app.put('/api/fyp/tasks/:id', (req, res) => {
-  const { name } = req.body;
+  const { name, description, assignee, status, stage, priority, start_date, deadline, sprint_id, progress } = req.body;
   const { id } = req.params;
-  db.query('UPDATE tasks SET name = ? WHERE id = ?', [name, id], (err) => {
+  const sql = 'UPDATE tasks SET name=?, description=?, assignee=?, status=?, stage=?, priority=?, start_date=?, deadline=?, sprint_id=?, progress=? WHERE id=?';
+  db.query(sql,[name, description, assignee, status, stage, priority, start_date, deadline, sprint_id, progress, id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Task updated' });
+    res.json({ message: 'Task detailed updated' });
+  });
+});
+
+// 拖拽更新状态时，同步更新 stage
+app.put('/api/fyp/tasks/:id/status', (req, res) => {
+  const { status, stage } = req.body;
+  const { id } = req.params;
+  db.query('UPDATE tasks SET status = ?, stage = ? WHERE id = ?', [status, stage, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Status updated' });
   });
 });
 

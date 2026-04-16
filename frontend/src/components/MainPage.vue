@@ -211,7 +211,7 @@ onMounted(() => {
 }
 header {
   background-color: #2c3e50;
-  color: white;
+  color: #2c3e50;
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;

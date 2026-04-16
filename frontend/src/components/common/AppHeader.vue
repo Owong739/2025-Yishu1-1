@@ -34,71 +34,52 @@ const navItemsByRole = {
   'Admin': [
     { label: 'My Profile', path: '/profile/admin' },
     { label: 'Manage Accounts', path: '/admin/manage-accounts' },
-    { label: 'All Tasks', path: '/task-manager' },
-    { label: 'Programme Tracking', path: '/dashboard' },
+    { label: 'Manage Tasks', path: '/task-manager' },
+    { label: 'Project Tracking', path: '/dashboard' },
     
   ],
-  'Supervisor': [
-    { label: 'My Profile', path: '/profile/supervisor' },
-    { label: 'Manage Accounts', path: '/supervisor/manage-accounts' },
-    { label: 'Manage Sprints', path: '/supervisor/sprints' },
-    { label: 'Team Tasks', path: '/supervisor/team-tasks' },
-    { label: 'My Teams', path: '/supervisor/teams' },
-    { label: 'Programme Tracking', path: '/dashboard' },
-   
-  ],
+
   'Project Manager': [
     { label: 'My Profile', path: '/profile/project-manager' },
-    { label: 'Current Sprint', path: '/project-manager/current-sprint' },
-    //{ label: 'Manage Task', path: '/project-manager/taskManager' },
     { label: 'Manage Task', path: '/task-manager' },
-    { label: 'Manage Project', path: '/project-manager/ProjectManager' },
-    //  Lucas的 programme tracking  👇👇👇 //
-    { label: 'Programme Tracking', path: '/dashboard' },
+    { label: 'Project Tracking', path: '/dashboard' },
   ],
   'Business Analyst': [
     { label: 'My Profile', path: '/profile/business-analyst' },
-    { label: 'Requirements', path: '/business-analyst/requirements' },
-    { label: 'User Stories', path: '/business-analyst/stories' },
-    { label: 'Current Sprint', path: '/business-analyst/current-sprint' },
     { label: 'My Tasks', path: '/business-analyst/my-tasks' },
     { label: 'Manage Task', path: '/task-manager' },
-    { label: 'Programme Tracking', path: '/dashboard' },
+    { label: 'Project Tracking', path: '/dashboard' },
    
   ],
   'Developer': [
     { label: 'My Profile', path: '/profile/developer' },
     { label: 'My Tasks', path: '/developer/my-tasks' },
-    { label: 'Current Sprint', path: '/developer/current-sprint' },
     { label: 'My Team', path: '/developer/my-team' },
     { label: 'Manage Task', path: '/task-manager' },
-    { label: 'Programme Tracking', path: '/dashboard' },
+    { label: 'Project Tracking', path: '/dashboard' },
   ],
   'Tester': [
     { label: 'My Profile', path: '/profile/tester' },
     { label: 'Test Cases', path: '/tester/test-cases' },
-    { label: 'Current Sprint Tasks', path: '/tester/current-sprint-tasks' },
     { label: 'Submit Bug', path: '/tester/bug-report' },
     { label: 'My Team', path: '/tester/my-team' },
     { label: 'Manage Task', path: '/task-manager' },
-    { label: 'Programme Tracking', path: '/dashboard' },
+    { label: 'Project Tracking', path: '/dashboard' },
    
   ],
   'UAT User': [
     { label: 'My Profile', path: '/profile/uat-user' },
     { label: 'My UAT Tests', path: '/uat/my-tests' },
-    { label: 'Current Sprint', path: '/uat/current-sprint' },
     { label: 'Feedback', path: '/uat/feedback' },
     { label: 'Manage Task', path: '/task-manager' },
-    { label: 'Programme Tracking', path: '/dashboard' },
+    { label: 'Project Tracking', path: '/dashboard' },
     
   ],
   'Product Owner': [
     { label: 'My Profile', path: '/profile/product-owner' },
     { label: 'User Stories', path: '/product-owner/stories' },
     { label: 'Priorities', path: '/product-owner/priorities' },
-    { label: 'Current Sprint', path: '/product-owner/current-sprint' },
-    { label: 'Programme Tracking', path: '/dashboard' },
+    { label: 'Project Tracking', path: '/dashboard' },
   ]
 } as const
 

@@ -708,6 +708,53 @@ app.put('/api/tasks/:id', (req, res) => {
     testCase   
   } = req.body;
 
+  const getOldSql = "SELECT priority, assignee FROM task_manager WHERE id = ?";
+  db.query(getOldSql, [taskId], (err, rows) => {
+    if (err || rows.length === 0) return res.status(404).json({ success: false, message: 'Task not found' });
+
+    const oldPriority = rows[0].priority;
+
+    // 2. 執行更新 SQL
+    const updateSql = `
+      UPDATE task_manager
+      SET project = ?, title = ?, status = ?, priority = ?, assignee = ?, 
+          role = ?, sprint = ?, noDates = ?, userStory = ?, codeUrl = ?, testCase = ?
+      WHERE id = ?
+    `;
+
+    db.query(updateSql, [
+      project, title, status, priority, assignee, 
+      role, sprint, noDates, userStory, codeUrl, testCase, taskId
+    ], (upErr, result) => {
+      if (upErr) return res.status(500).json({ success: false, error: upErr.message });
+
+      // 3. 【新增：優先級變更通知邏輯】
+      // 如果新舊優先級不同，且目前有指派人
+      if (priority !== oldPriority && assignee) {
+        
+        // A. 查出指派人的 user_id
+        db.query("SELECT id FROM users WHERE name = ?", [assignee], (uErr, uRows) => {
+          if (!uErr && uRows.length > 0) {
+            const targetUserId = uRows[0].id;
+            const msg = `Task Priority Changed: "${title}" is now [${priority}] (was ${oldPriority})`;
+
+            // B. 寫入通知表
+            db.query("INSERT INTO notifications (user_id, message) VALUES (?, ?)", [targetUserId, msg], (nErr, nResult) => {
+              if (!nErr) {
+                // C. 透過 Socket 即時射出去
+                console.log(`發送優先級變更通知給 user_${targetUserId}`);
+                io.to(`user_${targetUserId}`).emit('newNotification', {
+                  id: nResult.insertId,
+                  message: msg,
+                  created_at: new Date(),
+                  is_read: 0
+                });
+              }
+            });
+          }
+        });
+      }
+
   const query = `
     UPDATE task_manager
     SET project = ?, title = ?, status = ?, priority = ?, userStory = ?, 
@@ -737,6 +784,8 @@ app.put('/api/tasks/:id', (req, res) => {
     res.json({
       success: true,
       message: 'Task updated successfully'
+    });
+    });
     });
   });
 });

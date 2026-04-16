@@ -130,8 +130,9 @@
         </div>
       </div>
 
-      <!-- Sprint Detail Page -->
+      <!-- Sprint Detail Page  -->
       <div v-if="currentPage === 'sprintDetail'">
+        <!-- 頂部標題與倒計時 -->
         <div class="card-box" style="display: flex; justify-content: space-between; border-left: 6px solid #0052cc">
           <div>
             <h2 style="margin: 0">{{ currentSprint?.name }} Dashboard</h2>
@@ -142,9 +143,63 @@
             <small>Remaining</small>
           </div>
         </div>
-        <!-- ... (Sprint 內部的 Metrics 和 Table 保持原樣) ... -->
+
+        <div class="metrics-container">
+          <!-- 左側：Sprint 進度條 -->
+          <div class="card-box" style="flex: 1">
+            <h4>Sprint Progress</h4>
+            <div style="font-size: 14px; margin-bottom: 10px">Total Issues: <strong>{{ currentSprintTasks.length }}</strong></div>
+            <div style="font-size: 14px; margin-bottom: 10px">
+              Done: <strong style="color: var(--success)">{{ doneCount }}</strong>
+            </div>
+            <div style="width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden">
+              <div :style="{ width: sprintProgress + '%', height: '100%', background: 'var(--success)' }"></div>
+            </div>
+          </div>
+
+          <!-- 右側：工作量統計圖 (Role Workload) -->
+          <div class="card-box" style="flex: 2.5">
+            <h4 style="margin: 0 0 10px 0">Role Workload: Done (Blue) vs Pending (Yellow)</h4>
+            <div id="burnDownChart" style="width: 100%; height: 250px"></div>
+          </div>
+        </div>
+
+        <!-- 下方：任務明細表格 -->
+        <div class="card-box">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px">
+            <thead>
+              <tr style="background: #f4f5f7; border-bottom: 2px solid #ddd; text-align: left">
+                <th style="padding: 10px">Title</th>
+                <th>Assignee</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th v-if="isPM">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="t in currentSprintTasks" :key="t.id" style="border-bottom: 1px solid #eee">
+                <td style="padding: 10px; color: #0052cc; font-weight: bold; cursor: pointer" @click="openTaskEdit(t)">
+                  {{ t.title }}
+                </td>
+                <td>{{ t.assignee || 'Unassigned' }}</td>
+                <td>{{ t.priority }}</td>
+                <td>
+                  <span :class="['status-badge', t.status === 'Done' ? 'bg-ongoing' : '']" 
+                        style="font-size: 10px; padding: 2px 8px">
+                    {{ t.status }}
+                  </span>
+                </td>
+                <td v-if="isPM">
+                  <button class="btn" style="color: var(--danger); font-size: 12px" @click="removeFromSprint(t)">Remove</button>
+                </td>
+              </tr>
+              <tr v-if="currentSprintTasks.length === 0">
+                <td colspan="5" style="text-align: center; padding: 20px; color: #999">No tasks in this sprint.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
     <!-- Modals (Task Edit) -->
     <div class="modal-overlay" v-if="showTaskModal" @click.self="showTaskModal = false">
@@ -197,6 +252,7 @@
           </div>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>

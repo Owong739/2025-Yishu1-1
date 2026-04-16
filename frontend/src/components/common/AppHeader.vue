@@ -34,10 +34,7 @@ const navItemsByRole = {
   'Admin': [
     { label: 'My Profile', path: '/profile/admin' },
     { label: 'Manage Accounts', path: '/admin/manage-accounts' },
-    { label: 'All Projects', path: '/projects' },
-    { label: 'All Sprints', path: '/admin/sprints' },
-    { label: 'All Tasks', path: '/admin/tasks' },
-    { label: 'All Teams', path: '/admin/teams' },
+    { label: 'All Tasks', path: '/task-manager' },
     { label: 'Programme Tracking', path: '/dashboard' },
     
   ],

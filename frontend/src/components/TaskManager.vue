@@ -136,9 +136,19 @@
                       <label>Role</label>
                       <input v-model="currentTask.role" type="text" readonly class="readonly" />
                   </div>
-                  <div class="form-field">
+                    <div class="form-field">
                       <label>Sprint (No.)</label>
-                      <input v-model.number="currentTask.sprint" type="number" readonly class="readonly" />
+                      <select 
+                        v-model.number="currentTask.sprint" 
+                        :disabled="!isProjectManager" 
+                        :class="{ readonly: !isProjectManager }"
+                      >
+                        <option :value="null">-- Select --</option>
+                        <!-- 使用 getSprintOptions 函數生成選項 -->
+                        <option v-for="n in getSprintOptions(currentTask.project)" :key="n" :value="n">
+                          Sprint {{ n }}
+                        </option>
+                      </select>
                   </div>
                   <div class="form-field">
                       <label>No.Dates</label>
@@ -210,8 +220,18 @@
                 <input v-model="newTask.role" readonly class="readonly" />
               </div>
               <div class="form-field">
-                <label>Sprint (No.)</label>
-                <input v-model.number="newTask.sprint" type="number" readonly class="readonly" />
+                  <label>Sprint (No.)</label>
+                  <select 
+                    v-model.number="currentTask.sprint" 
+                    :disabled="!isProjectManager" 
+                    :class="{ readonly: !isProjectManager }"
+                  >
+                    <option :value="null">-- Select --</option>
+                    <!-- 使用 getSprintOptions 函數生成選項 -->
+                    <option v-for="n in getSprintOptions(currentTask.project)" :key="n" :value="n">
+                      Sprint {{ n }}
+                    </option>
+                  </select>
               </div>
             </div>
             <br>
@@ -260,6 +280,14 @@ const isStatusDisabled = computed(() => {
   if (isUATUser.value && originalStatus.value === 'UAT') return false;
   return true;
 });
+
+const getSprintOptions = (projectName: string) => {
+  const proj = projects.value.find(p => p.name === projectName);
+  if (!proj || !proj.sprint_count) return [];
+  
+  // 根據 sprint_count 生成 [1, 2, 3...N] 陣列
+  return Array.from({ length: proj.sprint_count }, (_, i) => i + 1);
+};
 
 const availableStatusOptions = computed(() => {
   const all = ['Backlog', 'Dev', 'SIT', 'UAT', 'Done'];
@@ -394,7 +422,11 @@ const fetchUsers = async () => {
 
 const handleProjectChange = () => {
   const selectedProj = projects.value.find(p => p.name === newTask.project);
-  newTask.sprint = selectedProj ? selectedProj.sprint_count : null;
+  if (selectedProj) {
+    newTask.sprint = 1;
+  } else {
+    newTask.sprint = null;
+  }
 };
 
 const autoFillRoleCreate = () => {
@@ -438,6 +470,10 @@ const saveTask = async () => {
 };
 
 const confirmCreate = async () => {
+  if (!newTask.sprint) {
+    alert("Please select a Sprint number.");
+    return;
+  }
   try {
     const res = await axios.post('http://localhost:3000/api/tasks', newTask);
     if (res.data.success) {

@@ -90,17 +90,30 @@
         </div>
 
         <!-- Sprint Management -->
+        <!-- 找到 Sprint Management 區塊 -->
         <div class="card-box">
           <h2 style="margin: 0 0 10px 0">Sprint Management</h2>
-          <p style="color: #666; font-size: 14px; margin-bottom: 20px">Organize and track your development cycles.</p>
-          <div v-for="s in sprints" :key="s.id" class="card-box"
-               style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #eee; margin-bottom: 10px">
+          <p style="color: #666; font-size: 14px; margin-bottom: 20px">
+            Organize and track your development cycles for <strong>{{ selectedProjectName || 'All Projects' }}</strong>.
+          </p>
+
+          <!-- 修改這裡：使用 displaySprints 代替 sprints -->
+          <div v-for="s in displaySprints" :key="s.id" class="card-box"
+              style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #eee; margin-bottom: 10px">
             <div>
               <strong>{{ s.name }}</strong><br>
               <small>📅 {{ formatDate(s.start_date) }} - {{ formatDate(s.deadline) }}</small>
             </div>
             <div>
-              <span :class="['status-badge', s.status === 'In progress' ? 'bg-ongoing' : '']">
+              <!-- 狀態標籤顏色適配 -->
+              <span 
+                class="status-badge"
+                :style="{ 
+                  backgroundColor: s.status === 'IN PROGRESS' ? '#e3fcef' : s.status === 'DONE' ? '#e6f7ff' : '#f4f5f7',
+                  color: s.status === 'IN PROGRESS' ? '#006644' : s.status === 'DONE' ? '#0052cc' : '#5e6c84',
+                  border: s.status === 'IN PROGRESS' ? '1px solid #006644' : 'none'
+                }"
+              >
                 {{ s.status }}
               </span>
             </div>
@@ -108,6 +121,11 @@
               <button class="btn" style="background: #f4f5f7" @click="openSprintPage(s)">📊 View Board</button>
               <button v-if="isPM" class="btn" style="background: #f4f5f7" @click="openSprintEdit(s)">⚙️ Edit</button>
             </div>
+          </div>
+          
+          <!-- 如果沒選專案且沒數據時的提示 -->
+          <div v-if="displaySprints.length === 0" style="text-align: center; color: #999; padding: 20px;">
+            No sprints defined for this project.
           </div>
         </div>
       </div>
@@ -423,6 +441,65 @@ const startCountdown = () => {
   update()
   setInterval(update, 60000)
 }
+
+const displaySprints = computed(() => {
+  // 1. 如果沒選專案，顯示資料庫裡原始的內容
+  if (!selectedProjectName.value) return sprints.value;
+
+  const proj = allProjects.value.find(p => p.name === selectedProjectName.value);
+  if (!proj || !proj.start_date || !proj.end_date) return [];
+
+  const count = proj.sprint_count || 1;
+  const projectStart = new Date(proj.start_date);
+  const projectEnd = new Date(proj.end_date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // 只比較日期，不比較時間
+
+  // 計算專案總天數和每個 Sprint 的平均天數
+  const totalDays = Math.floor((projectEnd - projectStart) / (1000 * 60 * 60 * 24));
+  const daysPerSprint = Math.floor(totalDays / count);
+
+  const result = [];
+
+  for (let i = 1; i <= count; i++) {
+    // 計算該 Sprint 的開始與結束日期
+    const sStart = new Date(projectStart);
+    sStart.setDate(projectStart.getDate() + (i - 1) * daysPerSprint);
+    
+    const sEnd = new Date(sStart);
+    // 最後一個 Sprint 確保對齊專案結束日
+    if (i === count) {
+      sEnd.setTime(projectEnd.getTime());
+    } else {
+      sEnd.setDate(sStart.getDate() + daysPerSprint - 1);
+    }
+
+    // 判斷狀態邏輯
+    let calculatedStatus = '';
+    const checkStart = new Date(sStart);
+    checkStart.setHours(0,0,0,0);
+    const checkEnd = new Date(sEnd);
+    checkEnd.setHours(23,59,59,999);
+
+    if (today < checkStart) {
+      calculatedStatus = 'PLANNED';
+    } else if (today > checkEnd) {
+      calculatedStatus = 'DONE';
+    } else {
+      calculatedStatus = 'IN PROGRESS';
+    }
+
+    result.push({
+      id: `auto-${proj.id}-${i}`,
+      name: `Sprint ${i}`,
+      start_date: sStart,
+      deadline: sEnd,
+      status: calculatedStatus
+    });
+  }
+
+  return result;
+});
 
 // ==================== Mounted ====================
 onMounted(() => {

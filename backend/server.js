@@ -210,21 +210,10 @@ app.get('/api/projects', (req, res) => {
   let sql = "";
   let params = [];
 
-  // UPDATED: Added 'UAT User' to the authorized list
-  const authorizedRoles = [
-    'Admin', 
-    'Project Manager', 
-    'Business Analyst', 
-    'Developer', 
-    'Tester', 
-    'UAT User'
-  ];
-
-  if (authorizedRoles.includes(role)) {
-    // These roles can see all projects to use the "Search/Filter" sidebar
+  // 只有 Admin 可以看到資料庫裡「所有」專案
+  if (role === 'Admin') {
     sql = "SELECT * FROM projects"; 
   } else {
-    // Other roles only see projects they are explicitly members of
     sql = `
       SELECT DISTINCT p.* 
       FROM projects p

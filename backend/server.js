@@ -639,6 +639,27 @@ app.post('/api/tasks', (req, res) => {
     userStory 
   } = req.body;
 
+   if (assignee) {
+      db.query("SELECT id FROM users WHERE name = ?", [assignee], (uErr, uRows) => {
+        if (!uErr && uRows.length > 0) {
+          const targetUserId = uRows[0].id;
+          const msg = `New task assigned: ${title} (Project: ${project})`;
+
+          db.query("INSERT INTO notifications (user_id, message) VALUES (?, ?)", [targetUserId, msg], (nErr, nResult) => {
+            if (!nErr) {
+              console.log(`Send task notification to user_${targetUserId}`);
+              io.to(`user_${targetUserId}`).emit('newNotification', {
+                id: nResult.insertId,
+                message: msg,
+                created_at: new Date(),
+                is_read: 0
+              });
+            }
+          });
+        }
+      });
+    }
+
   // The query must match the column names in your task_manager table
   const query = `
     INSERT INTO task_manager (project, title, status, priority, assignee, role, sprint, noDates, userStory)

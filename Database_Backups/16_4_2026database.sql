@@ -31,7 +31,7 @@ CREATE TABLE `notifications` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,7 +40,7 @@ CREATE TABLE `notifications` (
 
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
-INSERT INTO `notifications` VALUES (1,2,'You have been added to project: testing noti 2',0,'2026-02-19 03:54:47'),(2,4,'You have been added to project: testing noti 2',0,'2026-02-19 03:54:52'),(3,4,'You have been removed from project: testing noti 2',0,'2026-03-12 06:07:01'),(4,3,'You have been added to project: testing noti 2',0,'2026-03-12 06:07:07'),(5,8,'You have been added to project: testing noti 2',0,'2026-03-12 06:07:09'),(6,5,'You have been removed from project: Testing notification',0,'2026-03-12 08:02:38');
+INSERT INTO `notifications` VALUES (1,2,'You have been added to project: testing noti 2',0,'2026-02-19 03:54:47'),(2,4,'You have been added to project: testing noti 2',0,'2026-02-19 03:54:52'),(3,4,'You have been removed from project: testing noti 2',0,'2026-03-12 06:07:01'),(4,3,'You have been added to project: testing noti 2',0,'2026-03-12 06:07:07'),(5,8,'You have been added to project: testing noti 2',0,'2026-03-12 06:07:09'),(6,5,'You have been removed from project: Testing notification',0,'2026-03-12 08:02:38'),(7,6,'You have been added to project: ProjectNY',0,'2026-04-16 09:40:52'),(8,8,'You have been added to project: ProjectNY',0,'2026-04-16 09:40:56'),(9,3,'You have been added to project: ProjectNY',0,'2026-04-16 09:41:05'),(10,3,'New task assigned: Create noti testing (Project: ProjectNY)',0,'2026-04-16 09:57:23'),(11,3,'Task Priority Changed: \"Create noti testing\" is now [High] (was Medium)',0,'2026-04-16 10:22:47'),(12,9,'You have been added to project: ProjectNY',0,'2026-04-16 13:32:31');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -61,7 +61,7 @@ CREATE TABLE `project_members` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `project_members_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
   CONSTRAINT `project_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -70,7 +70,7 @@ CREATE TABLE `project_members` (
 
 LOCK TABLES `project_members` WRITE;
 /*!40000 ALTER TABLE `project_members` DISABLE KEYS */;
-INSERT INTO `project_members` VALUES (1,9,2,'2026-02-17 08:34:48'),(2,9,4,'2026-02-17 08:34:52'),(3,8,6,'2026-02-17 08:35:20'),(4,8,3,'2026-02-17 08:35:21'),(5,8,4,'2026-02-17 08:35:23'),(6,8,1,'2026-02-17 08:35:24'),(7,7,2,'2026-02-18 03:04:07'),(9,7,4,'2026-02-18 03:04:12'),(10,7,5,'2026-02-18 03:04:14'),(11,4,1,'2026-02-19 03:31:06'),(12,4,2,'2026-02-19 03:31:08'),(13,4,3,'2026-02-19 03:31:09'),(14,4,4,'2026-02-19 03:31:11'),(15,4,5,'2026-02-19 03:31:12'),(16,4,6,'2026-02-19 03:31:13'),(17,10,2,'2026-02-19 03:41:49'),(18,10,3,'2026-02-19 03:41:50'),(20,10,1,'2026-02-19 03:41:56'),(21,10,6,'2026-02-19 03:43:17'),(23,11,2,'2026-02-19 03:54:47'),(25,11,3,'2026-03-12 06:07:07'),(26,11,8,'2026-03-12 06:07:09');
+INSERT INTO `project_members` VALUES (1,9,2,'2026-02-17 08:34:48'),(2,9,4,'2026-02-17 08:34:52'),(3,8,6,'2026-02-17 08:35:20'),(4,8,3,'2026-02-17 08:35:21'),(5,8,4,'2026-02-17 08:35:23'),(6,8,1,'2026-02-17 08:35:24'),(7,7,2,'2026-02-18 03:04:07'),(9,7,4,'2026-02-18 03:04:12'),(10,7,5,'2026-02-18 03:04:14'),(11,4,1,'2026-02-19 03:31:06'),(12,4,2,'2026-02-19 03:31:08'),(13,4,3,'2026-02-19 03:31:09'),(14,4,4,'2026-02-19 03:31:11'),(15,4,5,'2026-02-19 03:31:12'),(16,4,6,'2026-02-19 03:31:13'),(17,10,2,'2026-02-19 03:41:49'),(18,10,3,'2026-02-19 03:41:50'),(20,10,1,'2026-02-19 03:41:56'),(21,10,6,'2026-02-19 03:43:17'),(23,11,2,'2026-02-19 03:54:47'),(25,11,3,'2026-03-12 06:07:07'),(26,11,8,'2026-03-12 06:07:09'),(27,9,6,'2026-04-16 09:40:52'),(28,9,8,'2026-04-16 09:40:56'),(29,9,3,'2026-04-16 09:41:05'),(30,9,9,'2026-04-16 13:32:31');
 /*!40000 ALTER TABLE `project_members` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -91,7 +91,7 @@ CREATE TABLE `project_messages` (
   PRIMARY KEY (`id`),
   KEY `project_id` (`project_id`),
   CONSTRAINT `project_messages_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -100,7 +100,7 @@ CREATE TABLE `project_messages` (
 
 LOCK TABLES `project_messages` WRITE;
 /*!40000 ALTER TABLE `project_messages` DISABLE KEYS */;
-INSERT INTO `project_messages` VALUES (1,1,1,'Admin User','hi','2026-02-19 03:15:39'),(2,9,1,'Admin User','testing testing','2026-02-19 03:16:04'),(3,9,3,'Testing PM','what up','2026-02-19 03:16:23'),(4,8,3,'Testing PM','hello','2026-02-19 03:21:23'),(5,1,1,'Admin User','hello','2026-02-19 10:08:34'),(6,1,3,'Testing PM','hi','2026-02-19 10:24:09'),(7,1,1,'Admin User','asdfasdf','2026-03-12 08:02:08');
+INSERT INTO `project_messages` VALUES (1,1,1,'Admin User','hi','2026-02-19 03:15:39'),(2,9,1,'Admin User','testing testing','2026-02-19 03:16:04'),(3,9,3,'Testing PM','what up','2026-02-19 03:16:23'),(4,8,3,'Testing PM','hello','2026-02-19 03:21:23'),(5,1,1,'Admin User','hello','2026-02-19 10:08:34'),(6,1,3,'Testing PM','hi','2026-02-19 10:24:09'),(7,1,1,'Admin User','asdfasdf','2026-03-12 08:02:08'),(8,8,1,'Admin User','Hi, did you finish your work @Testing Pm','2026-04-16 09:34:24'),(9,8,6,'testing25','How are you HaHa','2026-04-16 09:34:57'),(10,8,4,'developer testing 1','Oh no, I cannot finish my work, I need to OT','2026-04-16 09:39:08'),(11,9,4,'developer testing 1','Ohno','2026-04-16 09:40:37'),(12,9,8,'BA1','I cannot contact the client','2026-04-16 09:41:37'),(13,8,3,'Testing PM','haha','2026-04-16 10:42:01');
 /*!40000 ALTER TABLE `project_messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -134,7 +134,7 @@ CREATE TABLE `projects` (
 
 LOCK TABLES `projects` WRITE;
 /*!40000 ALTER TABLE `projects` DISABLE KEYS */;
-INSERT INTO `projects` VALUES (1,'123','123','To Do',NULL,'2025-11-24 16:58:18','2026-02-18','2026-03-11',2,'Testing PM'),(2,'123','123','To Do',NULL,'2025-11-24 16:58:20',NULL,NULL,0,NULL),(3,'Testing 1','this is testing from 2/12/2025','To Do',NULL,'2025-12-01 17:13:26',NULL,NULL,0,'product manager testing 1'),(4,'asfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:34',NULL,NULL,0,'Testing PM'),(5,'asdfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:43',NULL,NULL,0,NULL),(6,'Hello World','testing hahaha','To Do',NULL,'2025-12-01 17:23:28',NULL,NULL,3,NULL),(7,'ff123','aa','To Do',NULL,'2026-01-27 15:28:43','2026-01-14','2026-01-21',2,''),(8,'testing25demo','this is a demo project','To Do',NULL,'2026-02-05 03:31:57','2026-03-12','2026-02-19',3,'Testing PM'),(9,'ProjectNY','This is going to test pm selection','To Do',NULL,'2026-02-17 08:12:26','2026-02-17','2026-03-05',5,'Testing PM'),(10,'Testing notification','use to test noti','To Do',NULL,'2026-02-19 03:40:44','2026-03-05','2026-02-03',4,'Testing PM'),(11,'testing noti 2','','To Do',NULL,'2026-02-19 03:53:50','2026-02-11','2026-03-04',1,'product manager testing 1');
+INSERT INTO `projects` VALUES (1,'123','123','To Do',NULL,'2025-11-24 16:58:18','2026-02-18','2026-03-11',2,'Testing PM'),(2,'123','123','To Do',NULL,'2025-11-24 16:58:20',NULL,NULL,0,NULL),(3,'Testing 1','this is testing from 2/12/2025','To Do',NULL,'2025-12-01 17:13:26',NULL,NULL,0,'product manager testing 1'),(4,'asfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:34',NULL,NULL,0,'Testing PM'),(5,'asdfasdf','asdfasdf','To Do',NULL,'2025-12-01 17:13:43',NULL,NULL,0,NULL),(6,'Hello World','testing hahaha','To Do',NULL,'2025-12-01 17:23:28',NULL,NULL,3,NULL),(7,'ff123','aa','To Do',NULL,'2026-01-27 15:28:43','2026-01-14','2026-01-21',2,''),(8,'testing25demo','this is a demo project','To Do',NULL,'2026-02-05 03:31:57','2026-03-12','2026-02-19',3,'Testing PM'),(9,'ProjectNY','This is going to test pm selection','To Do',NULL,'2026-02-17 08:12:26','2026-03-29','2026-05-09',3,'Testing PM'),(10,'Testing notification','use to test noti','To Do',NULL,'2026-02-19 03:40:44','2026-03-05','2026-02-03',4,'Testing PM'),(11,'testing noti 2','','To Do',NULL,'2026-02-19 03:53:50','2026-02-11','2026-03-04',1,'product manager testing 1');
 /*!40000 ALTER TABLE `projects` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -187,7 +187,7 @@ CREATE TABLE `task_manager` (
   `codeUrl` text,
   `testCase` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -196,7 +196,7 @@ CREATE TABLE `task_manager` (
 
 LOCK TABLES `task_manager` WRITE;
 /*!40000 ALTER TABLE `task_manager` DISABLE KEYS */;
-INSERT INTO `task_manager` VALUES (1,'aaa','bba','BA(Business Analyst)','Low','Admin User','Admin',NULL,7,'11',NULL,NULL),(3,'ff','22','In Progress','High','Admin User','Default Role',NULL,8,'ttt',NULL,NULL),(4,'Hello World','222','To Do','High','Admin User','Admin',NULL,10,'TTT',NULL,NULL),(5,'ff','ff2','In Progress','Medium','testing0101','Tester',NULL,5,'ttt',NULL,NULL),(6,'Hello World','Y','In Progress','High','product manager testing 1','Project Manager',1,22,'yy11',NULL,'Test Case1'),(7,'Hello World','111','To Do','Medium','Admin User','Admin',2,14,'2',NULL,NULL),(8,'Hello World','hee','To Do','Medium','developer testing 1','Developer',3,21,'11',NULL,NULL),(9,'ff123','testing25','To Do','Medium','Admin User','Admin',2,7,'gsdfgsdfg',NULL,NULL),(10,'testing25demo','demo1edited','Done','Low','testing0101','UAT User',3,12,'this is demo task.bilibala hello world',NULL,NULL),(11,'Testing notification','11','To Do','Medium','Testing PM','Project Manager',4,2,'yyy',NULL,NULL),(12,'Testing notification','22','To Do','Medium','Testing PM','Project Manager',4,44,'4',NULL,NULL),(13,'testing noti 2','222','dev(developer)','Medium','BA1','Business Analyst',1,22,'111',NULL,NULL),(14,'ProjectNY','Develop backend','Dev','High','developer testing 1','Developer',5,22,NULL,NULL,NULL),(15,'testing25demo','11','Backlog','High','BA1','Business Analyst',3,2,NULL,NULL,NULL),(16,'testing25demo','tt','SIT','Medium','TA00','Tester',3,2,NULL,NULL,NULL),(17,'testing noti 2','o','BA(Business Analyst)','Medium','developer testing 1','Developer',1,2,NULL,'http://localhost:5173/task-manager',NULL),(18,'Testing notification','Testing 1','UAT','Medium','testing0101','UAT User',4,0,NULL,NULL,NULL),(19,'testing25demo','Check Done','Done','Medium','Testing PM','Project Manager',3,0,NULL,NULL,NULL),(20,'testing25demo','SIT1','SIT','Medium','TA00','Tester',3,0,NULL,NULL,NULL),(21,'testing25demo','UAT testing 1','UAT','Medium','testing0101','UAT User',3,0,NULL,NULL,NULL),(22,'testing25demo','Dev testing 1','Dev','Medium','developer testing 1','Developer',3,0,NULL,NULL,NULL),(23,'ProjectNY','Done111','Done','Medium','Testing PM','Project Manager',5,0,NULL,NULL,NULL),(24,'ProjectNY','Frontend','Dev','Medium','developer testing 1','Developer',5,0,NULL,NULL,NULL),(25,'ProjectNY','User requirements','Backlog','Medium','BA1','Business Analyst',5,0,NULL,NULL,NULL),(26,'ProjectNY','User requirements testing','UAT','Medium','testing0101','UAT User',5,0,NULL,NULL,NULL),(27,'ProjectNY','User requirements Done','Done','Medium','developer testing 1','Developer',5,0,NULL,NULL,NULL);
+INSERT INTO `task_manager` VALUES (1,'aaa','bba','BA(Business Analyst)','Low','Admin User','Admin',NULL,7,'11',NULL,NULL),(3,'ff','22','In Progress','High','Admin User','Default Role',NULL,8,'ttt',NULL,NULL),(4,'Hello World','222','To Do','High','Admin User','Admin',NULL,10,'TTT',NULL,NULL),(5,'ff','ff2','In Progress','Medium','testing0101','Tester',NULL,5,'ttt',NULL,NULL),(6,'Hello World','Y','In Progress','High','product manager testing 1','Project Manager',1,22,'yy11',NULL,'Test Case1'),(7,'Hello World','111','To Do','Medium','Admin User','Admin',2,14,'2',NULL,NULL),(8,'Hello World','hee','To Do','Medium','developer testing 1','Developer',3,21,'11',NULL,NULL),(9,'ff123','testing25','To Do','Medium','Admin User','Admin',2,7,'gsdfgsdfg',NULL,NULL),(10,'testing25demo','demo1edited','Done','Low','testing0101','UAT User',3,12,'this is demo task.bilibala hello world',NULL,NULL),(11,'Testing notification','11','To Do','Medium','Testing PM','Project Manager',4,2,'yyy',NULL,NULL),(12,'Testing notification','22','To Do','Medium','Testing PM','Project Manager',4,44,'4',NULL,NULL),(13,'testing noti 2','222','dev(developer)','Medium','BA1','Business Analyst',1,22,'111',NULL,NULL),(14,'ProjectNY','Develop backend','Dev','High','developer testing 1','Developer',1,22,NULL,NULL,NULL),(15,'testing25demo','11','Backlog','High','BA1','Business Analyst',3,2,NULL,NULL,NULL),(16,'testing25demo','tt','SIT','Medium','TA00','Tester',2,2,NULL,NULL,NULL),(17,'testing noti 2','o','BA(Business Analyst)','Medium','developer testing 1','Developer',1,2,NULL,'http://localhost:5173/task-manager',NULL),(18,'Testing notification','Testing 1','UAT','Medium','testing0101','UAT User',4,0,NULL,NULL,NULL),(19,'testing25demo','Check Done','Done','Medium','Testing PM','Project Manager',1,0,NULL,NULL,NULL),(20,'testing25demo','SIT1','SIT','Medium','TA00','Tester',3,0,NULL,NULL,NULL),(21,'testing25demo','UAT testing 1','UAT','Medium','testing0101','UAT User',1,0,NULL,NULL,NULL),(22,'testing25demo','Dev testing 1','Dev','Medium','developer testing 1','Developer',3,13,NULL,NULL,NULL),(23,'ProjectNY','Done111','Done','Medium','Testing PM','Project Manager',2,0,NULL,NULL,NULL),(24,'ProjectNY','Frontend','Dev','Medium','developer testing 1','Developer',3,0,NULL,NULL,NULL),(25,'ProjectNY','User requirements','Backlog','Medium','BA1','Business Analyst',1,0,NULL,NULL,NULL),(26,'ProjectNY','User requirements testing','UAT','Medium','testing0101','UAT User',2,0,NULL,NULL,NULL),(27,'ProjectNY','User requirements Done','SIT','Medium','TA00','Tester',3,0,NULL,NULL,NULL),(28,'ProjectNY','Create noti testing','Done','High','Testing PM','Project Manager',3,0,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `task_manager` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -275,4 +275,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-16 13:02:01
+-- Dump completed on 2026-04-16 21:49:30

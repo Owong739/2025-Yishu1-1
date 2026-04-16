@@ -18,9 +18,15 @@
       <aside class="sidebar">
         <h3>Projects</h3>
         <ul class="project-list">
-          <li :class="{ active: selectedProject === null }" @click="selectProject(null)">
+          <!-- 只有 Admin 才能看到「All Tasks」 -->
+          <li 
+            v-if="isAdmin" 
+            :class="{ active: selectedProject === null }" 
+            @click="selectProject(null)"
+          >
             All Tasks
           </li>
+          
           <li
             v-for="project in projects"
             :key="project.id"
@@ -259,6 +265,7 @@ const isBusinessAnalyst = computed(() => userRole.value.toLowerCase().trim() ===
 const isDeveloper = computed(() => userRole.value.toLowerCase().trim() === 'developer');
 const isTester = computed(() => userRole.value.toLowerCase().trim() === 'tester');
 const isUATUser = computed(() => userRole.value.toLowerCase().trim() === 'uat user');
+const isAdmin = computed(() => userRole.value.toLowerCase().trim() === 'admin');
 
 const projects = ref<any[]>([]);
 const selectedProject = ref<string | null>(null);
@@ -398,7 +405,16 @@ const fetchProjects = async () => {
     const res = await axios.get('http://localhost:3000/api/projects', {
       params: { userId: user.id, role: user.role, userName: user.name }
     });
-    if (res.data.success) projects.value = res.data.data;
+    
+    if (res.data.success) {
+      projects.value = res.data.data;
+
+      // --- 新增優化邏輯 ---
+      // 如果不是 Admin，且目前沒有選中專案，且有專案列表，則預設選中第一個
+      if (!isAdmin.value && selectedProject.value === null && projects.value.length > 0) {
+        selectedProject.value = projects.value[0].name;
+      }
+    }
   } catch (err) { console.error(err); }
 };
 

@@ -119,7 +119,7 @@
             </div>
             <div style="display: flex; gap: 10px">
               <button class="btn" style="background: #f4f5f7" @click="openSprintPage(s)">📊 View Board</button>
-              <button v-if="isPM" class="btn" style="background: #f4f5f7" @click="openSprintEdit(s)">⚙️ Edit</button>
+              
             </div>
           </div>
           

@@ -166,7 +166,6 @@ const closeDeleteModal = () => {
           <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Email</th>
             <th>Role</th>
             <th>Action</th>
           </tr>
@@ -175,7 +174,6 @@ const closeDeleteModal = () => {
           <tr v-for="user in filteredUsers" :key="user.id">
             <td>{{ user.id }}</td>
             <td>{{ user.name }}</td>
-            <td>{{ user.email }}</td>
             <td><span class="role">{{ user.role }}</span></td>
             <td class="action-buttons">
               <button class="icon-btn edit" @click="openEditModal(user)">Edit</button>

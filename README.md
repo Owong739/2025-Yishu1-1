@@ -21,6 +21,15 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 
 ## Project Setup
 
+Should create a .env in the backend file and input the following data inside
+.env
+DB_HOST=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+PORT=
+
+
 ```sh
 npm install
 ```
@@ -31,13 +40,6 @@ npm install
 npm run dev
 ```
 
-Should create a .env in the backend file and input the following data inside
-.env
-DB_HOST=
-DB_USER=
-DB_PASSWORD=
-DB_NAME=
-PORT=
 
 ### Compile and Minify for Production
 

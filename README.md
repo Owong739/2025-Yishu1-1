@@ -21,9 +21,10 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 
 ## Project Setup
 
-```sh
+
 Should create a .env in the backend file and input the following data inside
 .env
+```sh
 DB_HOST=
 DB_USER=
 DB_PASSWORD=
